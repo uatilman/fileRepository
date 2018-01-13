@@ -4,6 +4,9 @@ import client.Message;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,13 +48,17 @@ public class FileThread implements Runnable {
                 } else if (message.getMessageType() == Message.MessageType.FILE_LIST) {
 
                 } else if (message.getMessageType() == Message.MessageType.FILE) {
-                    File file = message.getFile();
-                    if (file.isDirectory()) {
-                        System.out.println(file.getName() + " is Directory");
-                        createDirectory(rootUserDir + file.getName());
-                    } else {
-                        writeFile(file);
-                    }
+                    Files.write(
+                            Paths.get(rootUserDir + message.getFileName()),
+                                    message.getDate(),
+                                    StandardOpenOption.CREATE);
+//                    File file = message.getFile();
+//                    if (file.isDirectory()) {
+//                        System.out.println(file.getName() + " is Directory");
+//                        createDirectory(rootUserDir + file.getName());
+//                    } else {
+//                        writeFile(file);
+//                    }
 //
 //                    File file = new File("C:\\Users\\usr-mbk00066\\Desktop\\ru.uatilman.fileRepository\\src\\test\\java\\server\\" + message.getPath().toFile().getName());
 //

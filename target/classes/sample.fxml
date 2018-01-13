@@ -30,9 +30,10 @@
     </center>
     <bottom>
         <HBox fx:id="bottomField" cache="true" visible="false" BorderPane.alignment="BOTTOM_CENTER">
-                <TextField fx:id="textField" onAction="#sendMessage" promptText="введите сообщение" HBox.hgrow="ALWAYS">
+                <TextField fx:id="textField" onAction="#getFilesList" promptText="введите сообщение" HBox.hgrow="ALWAYS">
                 </TextField>
-                <Button fx:id="button" minWidth="-Infinity" onAction="#sendMessage" prefWidth="80.0" text="Отправить" />
+                <Button fx:id="buttonSelect" minWidth="-Infinity" onAction="#getFilesList" prefWidth="80.0" text="Выбрать" />
+                <Button fx:id="sendButton" minWidth="-Infinity" onAction="#sendFiles" prefWidth="80.0" text="Отправить" />
         </HBox>
     </bottom>
 </BorderPane>

@@ -4,6 +4,7 @@ import java.io.Externalizable;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.List;
 
 public class Message implements Serializable {
     public enum MessageType{
@@ -18,16 +19,35 @@ public class Message implements Serializable {
     private File file;
     private String login;
     private String password;
-
+    private List<File> files;
+    private String fileName;
+    private byte[] date;
     public Message(MessageType messageType) {
         this.messageType = messageType;
     }
 
-    public Message(MessageType messageType, File file) {
-        this.messageType = messageType;
-        this.file = file;
+    public List<File> getFiles() {
+        return files;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public byte[] getDate() {
+        return date;
+    }
+
+    public Message(MessageType messageType, String fileName, byte[] date) {
+        this.messageType = messageType;
+        this.fileName = fileName;
+        this.date = date;
+    }
+
+    public Message(MessageType messageType, List<File> files) {
+        this.messageType = messageType;
+        this.files = files;
+    }
 
     public Message(MessageType messageType, String login, String password) {
         this.messageType = messageType;

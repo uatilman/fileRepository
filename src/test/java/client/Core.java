@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 public class Core {
     ObjectOutputStream os;
@@ -13,6 +17,52 @@ public class Core {
     Controller controller;
     boolean isAuthorization;
     Thread userThread;
+    private List<File> files;
+
+
+    public void setFiles(List<File> files) {
+        this.files = files;
+        if (files != null) {
+            controller.clearTextArea();
+            for (File f : files) {
+                controller.printMessage(f.getName());
+
+            }
+        }
+    }
+
+    public void sendFiles() {
+        System.out.println("list " + files);
+        if (files != null) {
+            for (File f : files) {
+                try {
+                    sendMessage(new Message(Message.MessageType.FILE, f.getName(), Files.readAllBytes(Paths.get(f.toURI()))));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+//        if (!textField.getText().equals("")) {
+//            File file = new File("clientFiles\\1.txt");
+////            File file1 = new File("2.txt");
+//
+////            try {
+////                file1.createNewFile();
+////                System.out.println(file1.getAbsolutePath());
+////            } catch (IOException e) {
+////                e.printStackTrace();
+////            }
+//
+//            core.sendMessage(message);
+//            textField.clear();
+//            textField.requestFocus();
+//        } else {
+//            textField.requestFocus();
+//        }
+    }
+
     public Core(final Controller controller) {
         this.controller = controller;
         isAuthorization = false;

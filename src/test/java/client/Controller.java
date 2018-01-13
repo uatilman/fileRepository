@@ -7,9 +7,11 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class Controller {
     @FXML
@@ -17,7 +19,7 @@ public class Controller {
     @FXML
     private TextField textField;
     @FXML
-    private Button button;
+    private Button buttonSelect;
     private Core core;
     @FXML
     private TextArea textArea;
@@ -34,24 +36,18 @@ public class Controller {
         this.core = core;
     }
 
-    public void sendMessage() {
-        if (!textField.getText().equals("")) {
-            File file = new File("clientFiles\\1.txt");
-//            File file1 = new File("2.txt");
+    public void getFilesList() {
+        FileChooser fileChooser = new FileChooser();//Класс работы с диалогом выборки и сохранения
+        fileChooser.setTitle("Open Document");//Заголовок диалога
+        core.setFiles(fileChooser.showOpenMultipleDialog(Main.stage));
+    }
 
-//            try {
-//                file1.createNewFile();
-//                System.out.println(file1.getAbsolutePath());
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-            Message message = new Message(Message.MessageType.FILE, file);
-            core.sendMessage(message);
-            textField.clear();
-            textField.requestFocus();
-        } else {
-            textField.requestFocus();
-        }
+    public void clearTextArea() {
+        textArea.clear();
+    }
+
+    public void sendFiles() {
+        core.sendFiles();
     }
 
     public void printMessage(String text) {
