@@ -11,10 +11,15 @@ import java.util.logging.Logger;
 public class FileThread implements Runnable {
     public Socket socket;
     public List<File> files;
+    private String userName;
+    private final String SERVER_ADDRESS = "C:\\Users\\uatil\\OneDrive\\programming\\java\\java5\\ru.uatilman.fileRepository\\serverFiles\\";
+    private String rootUserDir;
 
     public FileThread(Socket socket, List<File> files) {
         this.socket = socket;
         this.files = files;
+
+
     }
 
     public void run() {
@@ -31,6 +36,8 @@ public class FileThread implements Runnable {
                 if (message.getMessageType() == Message.MessageType.AUTHORIZATION) {
                     if (message.getLogin().equals("log") && message.getPassword().equals("pas")) {
                         System.out.println("Клиент залогинился");
+                        this.userName = "log";
+                        rootUserDir = SERVER_ADDRESS + userName + "\\";
                         oos.writeObject("/authOk");
                         oos.flush();
                     }
@@ -40,7 +47,7 @@ public class FileThread implements Runnable {
                     File file = message.getFile();
                     if (file.isDirectory()) {
                         System.out.println(file.getName() + " is Directory");
-                        createDirectory(file);
+                        createDirectory(rootUserDir + file.getName());
                     } else {
                         writeFile(file);
                     }
@@ -75,8 +82,9 @@ public class FileThread implements Runnable {
         }
     }
 
-    public void createDirectory(File file) {
-        System.out.println("create dir result " + file.mkdir());
+
+    public boolean createDirectory(String dirName) {
+        return new File(dirName).mkdir();
     }
 
     public void writeFile(File file) {
@@ -90,7 +98,6 @@ public class FileThread implements Runnable {
             System.out.println(ex.getMessage());
         }
     }
-
 
 
 }
