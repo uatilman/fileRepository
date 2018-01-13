@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity"
+            minHeight="-Infinity" minWidth="-Infinity"
+            xmlns="http://javafx.com/javafx/8.0.121"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="client.Controller">
+    <top>
+        <HBox fx:id="authorizationField" cache="true" BorderPane.alignment="BOTTOM_CENTER">
+                <TextField fx:id="login" prefWidth="150.0" promptText="введите логин" HBox.hgrow="ALWAYS">
+                </TextField>
+                <PasswordField fx:id="password" prefWidth="150.0" onAction="#sendLoginPassword" promptText="введите пароль" HBox.hgrow="ALWAYS">
+                </PasswordField>
+            <Button fx:id="buttonLogin" minWidth="-Infinity" onAction="#sendLoginPassword" prefWidth="80.0" text="Войти" />
+
+        </HBox>
+    </top>
+    <center>
+        <TextArea fx:id="textArea" editable="false" >
+
+        </TextArea>
+    </center>
+    <bottom>
+        <HBox fx:id="bottomField" cache="true" visible="false" BorderPane.alignment="BOTTOM_CENTER">
+                <TextField fx:id="textField" onAction="#sendMessage" promptText="введите сообщение" HBox.hgrow="ALWAYS">
+                </TextField>
+                <Button fx:id="button" minWidth="-Infinity" onAction="#sendMessage" prefWidth="80.0" text="Отправить" />
+        </HBox>
+    </bottom>
+</BorderPane>
