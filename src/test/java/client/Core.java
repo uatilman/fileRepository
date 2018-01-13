@@ -27,7 +27,7 @@ public class Core {
 
 
         userThread = new Thread(() -> {
-            while (Thread.currentThread().isInterrupted()) {
+            while (!Thread.currentThread().isInterrupted()) {
                 controller.printMessage("Авторизируйтесь");
                 try {
                     do {
@@ -38,9 +38,11 @@ public class Core {
                             controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
                         }
                     } while (true);
+
                 } catch (IOException | ClassNotFoundException e) {
                     System.err.println("Соединение разорвано: " + e.getMessage());
                 }
+
             }
         });
         userThread.start();
