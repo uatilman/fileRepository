@@ -2,14 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e5747555-be18-42f1-90d4-c0e29a2b564c" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/serverFiles/user1/1.txt" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/clientFiles/1.txt" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/resources/sample.fxml" afterPath="$PROJECT_DIR$/src/main/resources/sample.fxml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/java/client/Controller.java" afterPath="$PROJECT_DIR$/src/test/java/client/Controller.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/java/client/Core.java" afterPath="$PROJECT_DIR$/src/test/java/client/Core.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/java/client/Main.java" afterPath="$PROJECT_DIR$/src/test/java/client/Main.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/java/client/Message.java" afterPath="$PROJECT_DIR$/src/test/java/client/Message.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/java/server/FileThread.java" afterPath="$PROJECT_DIR$/src/test/java/server/FileThread.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/target/classes/sample.fxml" afterPath="$PROJECT_DIR$/target/classes/sample.fxml" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -59,8 +53,8 @@
           <file leaf-file-name="Core.java" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/test/java/client/Core.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="163">
-                  <caret line="40" column="40" lean-forward="true" selection-start-line="40" selection-start-column="40" selection-end-line="40" selection-end-column="40" />
+                <state relative-caret-position="231">
+                  <caret line="44" column="0" lean-forward="true" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -263,22 +257,6 @@
             <path>
               <item name="fileRepository" type="b2602c69:ProjectViewProjectNode" />
               <item name="ru.uatilman.fileRepository" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="fileRepository" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ru.uatilman.fileRepository" type="462c0819:PsiDirectoryNode" />
-              <item name="clientFiles" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="fileRepository" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ru.uatilman.fileRepository" type="462c0819:PsiDirectoryNode" />
-              <item name="serverFiles" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="fileRepository" type="b2602c69:ProjectViewProjectNode" />
-              <item name="ru.uatilman.fileRepository" type="462c0819:PsiDirectoryNode" />
-              <item name="serverFiles" type="462c0819:PsiDirectoryNode" />
-              <item name="user1" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="fileRepository" type="b2602c69:ProjectViewProjectNode" />
@@ -558,7 +536,14 @@
       <option name="project" value="LOCAL" />
       <updated>1515862134753</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="create send list file to server">
+      <created>1515876783401</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1515876783401</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -602,7 +587,8 @@
     <MESSAGE value="add creating user login&#10;files add to path with user login name" />
     <MESSAGE value="add close window listner" />
     <MESSAGE value="add ! to Thread.currentThread().isInterrupted()" />
-    <option name="LAST_COMMIT_MESSAGE" value="add ! to Thread.currentThread().isInterrupted()" />
+    <MESSAGE value="create send list file to server" />
+    <option name="LAST_COMMIT_MESSAGE" value="create send list file to server" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1007,8 +993,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/client/Core.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="163">
-          <caret line="40" column="40" lean-forward="true" selection-start-line="40" selection-start-column="40" selection-end-line="40" selection-end-column="40" />
+        <state relative-caret-position="231">
+          <caret line="44" column="0" lean-forward="true" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
