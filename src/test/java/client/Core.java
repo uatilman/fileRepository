@@ -12,7 +12,7 @@ public class Core {
     ObjectInputStream is;
     Controller controller;
     boolean isAuthorization;
-
+    Thread userThread;
     public Core(final Controller controller) {
         this.controller = controller;
         isAuthorization = false;
@@ -26,22 +26,24 @@ public class Core {
         }
 
 
-
-        new Thread(() -> {
-            controller.printMessage("Авторизируйтесь");
-            try {
-                do {
-                    String s = (String) is.readObject();
-                    if (s.startsWith("/authOk")) {
-                        setAuthorization();
-                    } else {
-                        controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
-                    }
-                } while (true);
-            } catch (IOException | ClassNotFoundException e) {
-                System.err.println("Соединение разорвано: " + e.getMessage());
+        userThread = new Thread(() -> {
+            while (Thread.currentThread().isInterrupted()) {
+                controller.printMessage("Авторизируйтесь");
+                try {
+                    do {
+                        String s = (String) is.readObject();
+                        if (s.startsWith("/authOk")) {
+                            Core.this.setAuthorization();
+                        } else {
+                            controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
+                        }
+                    } while (true);
+                } catch (IOException | ClassNotFoundException e) {
+                    System.err.println("Соединение разорвано: " + e.getMessage());
+                }
             }
-        }).start();
+        });
+        userThread.start();
     }
 
     private void setAuthorization() {
@@ -78,4 +80,14 @@ public class Core {
         }
     }
 
+    public void closeWindow() {
+
+        try {
+            is.close();
+            os.close();
+            userThread.interrupt();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

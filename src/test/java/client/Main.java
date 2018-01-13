@@ -19,6 +19,7 @@ public class Main extends Application {
         primaryStage.setTitle("Hello World");
         primaryStage.setScene(new Scene(root, 500, 300));
         primaryStage.show();
+        primaryStage.setOnCloseRequest(event -> controller.closingWindow());
 
 
     }

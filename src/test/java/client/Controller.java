@@ -69,4 +69,7 @@ public class Controller {
 //        textArea.setVisible(this.isAuthorization);
     }
 
+    public void closingWindow() {
+        core.closeWindow();
+    }
 }
