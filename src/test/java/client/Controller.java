@@ -36,7 +36,7 @@ public class Controller {
 
     public void sendMessage() {
         if (!textField.getText().equals("")) {
-            File file = new File("src\\test\\java\\client\\myFiles");
+            File file = new File("clientFiles\\1.txt");
 //            File file1 = new File("2.txt");
 
 //            try {

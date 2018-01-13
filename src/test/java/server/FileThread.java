@@ -34,10 +34,11 @@ public class FileThread implements Runnable {
             while (true) {
                 Message message = (Message) ois.readObject();
                 if (message.getMessageType() == Message.MessageType.AUTHORIZATION) {
-                    if (message.getLogin().equals("log") && message.getPassword().equals("pas")) {
+                    if (message.getLogin().equals("user1") && message.getPassword().equals("pas")) {
                         System.out.println("Клиент залогинился");
-                        this.userName = "log";
+                        this.userName = message.getLogin();
                         rootUserDir = SERVER_ADDRESS + userName + "\\";
+                        createDirectory(rootUserDir);
                         oos.writeObject("/authOk");
                         oos.flush();
                     }
@@ -79,6 +80,7 @@ public class FileThread implements Runnable {
             }
         } catch (IOException | ClassNotFoundException e) {
             System.err.println(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -88,8 +90,18 @@ public class FileThread implements Runnable {
     }
 
     public void writeFile(File file) {
+
+        try {
+            System.out.println("file.getAbsolutePath() " + file.getAbsolutePath());
+            System.out.println("file.getCanonicalPath() " + file.getCanonicalPath());
+            System.out.println("file.getName()" + file.getName());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
         try (FileInputStream fin = new FileInputStream(file);
-             FileOutputStream fos = new FileOutputStream("src\\test\\java\\server\\" + file.getName())) {
+             FileOutputStream fos = new FileOutputStream(rootUserDir + file.getName())) {
             byte[] buffer = new byte[fin.available()];
             fin.read(buffer, 0, buffer.length);
             fos.write(buffer, 0, buffer.length);
