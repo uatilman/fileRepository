@@ -5,6 +5,8 @@ import client.Message;
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class FileThread implements Runnable {
     public Socket socket;
@@ -68,17 +70,13 @@ public class FileThread implements Runnable {
                     oos.flush();
                 }
             }
-
         } catch (IOException | ClassNotFoundException e) {
             System.err.println(e.getMessage());
         }
-
     }
 
     public void createDirectory(File file) {
-
         System.out.println("create dir result " + file.mkdir());
-
     }
 
     public void writeFile(File file) {
@@ -92,6 +90,9 @@ public class FileThread implements Runnable {
             System.out.println(ex.getMessage());
         }
     }
+
+
+
 }
 
 //
