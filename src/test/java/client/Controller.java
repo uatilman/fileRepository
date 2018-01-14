@@ -38,7 +38,7 @@ public class Controller {
 
     public void getFilesList() {
         FileChooser fileChooser = new FileChooser();//Класс работы с диалогом выборки и сохранения
-        fileChooser.setTitle("Open Document");//Заголовок диалога
+        fileChooser.setTitle("Выбирите файлы для отправки");//Заголовок диалога
         core.setFiles(fileChooser.showOpenMultipleDialog(Main.stage));
     }
 
