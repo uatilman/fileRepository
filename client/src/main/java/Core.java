@@ -83,7 +83,7 @@ public class Core {
                             if (s.startsWith("/authOk")) {
                                 Core.this.setAuthorization();
                             } else {
-                                controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
+                                controller.printMessage((String) is.readObject());
                             }
                         } while (true);
 

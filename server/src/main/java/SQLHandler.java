@@ -6,7 +6,7 @@ public class SQLHandler {
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         SQLHandler sqlHandler = new SQLHandler();
-        sqlHandler.connection();
+        sqlHandler.connect();
 //        sqlHandler.insertTestDate();
         System.out.println(sqlHandler.getPassByLogin("user1"));
         sqlHandler.disconnect();
@@ -34,7 +34,7 @@ public class SQLHandler {
 //        connection.setAutoCommit(true);
     }
 
-    public void connection() throws ClassNotFoundException, SQLException {
+    public void connect() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
         connection = DriverManager.getConnection("jdbc:sqlite:server/fileRepository.db");
 

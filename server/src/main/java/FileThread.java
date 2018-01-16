@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.sql.SQLException;
 import java.util.List;
 
 public class FileThread implements Runnable {
@@ -27,22 +28,34 @@ public class FileThread implements Runnable {
         serverCore.printMessage("\tclient connect");
         InputStream in;
         OutputStream os;
+
         try {
             in = socket.getInputStream();
             os = socket.getOutputStream();
             ObjectInputStream ois = new ObjectInputStream(in);
             ObjectOutputStream oos = new ObjectOutputStream(os);
 
+
             while (true) {
                 Message message = (Message) ois.readObject();
                 if (message.getMessageType() == Message.MessageType.AUTHORIZATION) {
-                    if (message.getLogin().equals("user1") && message.getPassword().equals("pas")) {
+                    SQLHandler sqlHandler = new SQLHandler();
+                    sqlHandler.connect();
+
+                    System.out.println(message.getLogin());
+                    System.out.println(message.getPassword());
+                    System.out.println(sqlHandler.getPassByLogin(message.getLogin()));
+                    System.out.println(message.getPassword().equals(sqlHandler.getPassByLogin(message.getLogin())));
+
+                    if (message.getPassword().equals(sqlHandler.getPassByLogin(message.getLogin()))) {
                         this.userName = message.getLogin();
                         serverCore.printMessage("\tclient login as " + userName);
                         rootUserDir = SERVER_ADDRESS + userName + "\\";
                         createDirectory(rootUserDir);
                         oos.writeObject("/authOk");
                         oos.flush();
+                    } else {
+                        oos.writeObject("Логин или Пароль неверные. Повторите попытку.");
                     }
                 } else if (message.getMessageType() == Message.MessageType.FILE_LIST) {
 
@@ -89,6 +102,8 @@ public class FileThread implements Runnable {
             }
         } catch (IOException | ClassNotFoundException e) {
             serverCore.printMessage(e.getMessage());
+            e.printStackTrace();
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
