@@ -7,12 +7,13 @@ public class SQLHandler {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         SQLHandler sqlHandler = new SQLHandler();
         sqlHandler.connection();
-        sqlHandler.insertTestDate();
+//        sqlHandler.insertTestDate();
+        System.out.println(sqlHandler.getPassByLogin("user1"));
         sqlHandler.disconnect();
 
     }
-    public String getPassByLogin(String login, String pass) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement("SELECT nick FROM users WHERE login = ?");
+    public String getPassByLogin(String login) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement("SELECT password FROM users WHERE login = ?");
         ps.setString(1, login);
         ResultSet rs = ps.executeQuery();
         if (rs.next())
