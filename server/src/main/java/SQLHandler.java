@@ -1,3 +1,5 @@
+import org.apache.commons.codec.digest.DigestUtils;
+
 import java.sql.*;
 
 public class SQLHandler {
@@ -7,8 +9,8 @@ public class SQLHandler {
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
         SQLHandler sqlHandler = new SQLHandler();
         sqlHandler.connect();
-//        sqlHandler.insertTestDate();
-        System.out.println(sqlHandler.getPassByLogin("user1"));
+        sqlHandler.insertTestDate();
+//        System.out.println(sqlHandler.getPassByLogin("user1"));
         sqlHandler.disconnect();
 
     }
@@ -23,9 +25,14 @@ public class SQLHandler {
     public void insertTestDate() throws SQLException {
        PreparedStatement ps = connection.prepareStatement("INSERT INTO users (login, password) VALUES (?, ?);");
 //        connection.setAutoCommit(false);
+
         for (int i = 1; i < 16; i++) {
+            //TODO add salt см. закладки
+            //TODO проверить передачу WireShark
+
             ps.setString(1, ("user" + i));
-            ps.setString(2, ("pas" + i));
+//            ps.setString(2, ( DigestUtils.sha256Hex("pas" + i)));
+            ps.setString(2, ( "pas" + i));
             ps.execute();
 //            ps.addBatch();
         }
