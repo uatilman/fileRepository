@@ -21,17 +21,34 @@ public class Passwords {
     /**
      * static utility class
      */
-    private Passwords() { }
+    private Passwords() {
+    }
 
     /**
      * Returns a random salt to be used to hash a password.
      *
      * @return a 16 bytes random salt
      */
-    public static byte[] getNextSalt() {
+    private static byte[] getNextSalt() {
         byte[] salt = new byte[16];
         RANDOM.nextBytes(salt);
         return salt;
+    }
+
+    public static String[] getHashAndSolt(String data) {
+        byte salt[] = Passwords.getNextSalt();
+        byte hash[] = Passwords.hash(data.toCharArray(), salt);
+        String[] strings = new String[2];
+
+        strings[0] = bytesToHex(hash);
+        strings[1] = bytesToHex(salt);
+        return strings;
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuffer result = new StringBuffer();
+        for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
+        return result.toString();
     }
 
     /**
@@ -40,7 +57,6 @@ public class Passwords {
      *
      * @param password the password to be hashed
      * @param salt     a 16 bytes salt, ideally obtained with the getNextSalt method
-     *
      * @return the hashed password with a pinch of salt
      */
     public static byte[] hash(char[] password, byte[] salt) {
@@ -63,7 +79,6 @@ public class Passwords {
      * @param password     the password to check
      * @param salt         the salt used to hash the password
      * @param expectedHash the expected hashed value of the password
-     *
      * @return true if the given password and salt match the hashed value, false otherwise
      */
     public static boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
@@ -80,7 +95,6 @@ public class Passwords {
      * Generates a random password of a given length, using letters and digits.
      *
      * @param length the length of the password
-     *
      * @return a random password
      */
     public static String generateRandomPassword(int length) {

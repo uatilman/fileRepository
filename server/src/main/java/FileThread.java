@@ -42,12 +42,12 @@ public class FileThread implements Runnable {
                     SQLHandler sqlHandler = new SQLHandler();
                     sqlHandler.connect();
 
-                    System.out.println(message.getLogin());
-                    System.out.println(message.getPassword());
-                    System.out.println(sqlHandler.getPassByLogin(message.getLogin()));
-                    System.out.println(message.getPassword().equals(sqlHandler.getPassByLogin(message.getLogin())));
+//                    System.out.println(message.getLogin());
+//                    System.out.println(message.getPassword());
+//                    System.out.println(sqlHandler.getPassByLogin(message.getLogin()));
+//                    System.out.println(message.getPassword().equals(sqlHandler.getPassByLogin(message.getLogin())));
 
-                    if (message.getPassword().equals(sqlHandler.getPassByLogin(message.getLogin()))) {
+                    if (sqlHandler.isPasswordAvalible(message.getLogin(), message.getPassword())) {
                         this.userName = message.getLogin();
                         serverCore.printMessage("\tclient login as " + userName);
                         rootUserDir = SERVER_ADDRESS + userName + "\\";

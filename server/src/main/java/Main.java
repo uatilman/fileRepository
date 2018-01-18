@@ -1,5 +1,6 @@
 import org.apache.commons.codec.digest.DigestUtils;
 import sun.misc.BASE64Encoder;
+import sun.security.util.Password;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -8,7 +9,20 @@ import java.util.Base64;
 
 public class Main {
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        testSHA256Variants();
+//        testSHA256Variants();
+        String data = "hello";
+
+//        byte salt[] = Passwords.getNextSalt();
+//        byte hash[] = Passwords.hash(data.toCharArray(), salt);
+//        String hashStr = bytesToHex(hash);
+//        String saltStr = bytesToHex(hash);
+
+
+//        for (int i = 0; i < 5; i++) {
+//            System.out.println(bytesToHex(Passwords.getNextSalt()));
+//        }
+//        System.out.println(hashStr);
+//        System.out.println(Passwords.isExpectedPassword(data.toCharArray(), salt, hash));
     }
 
     private static void testSHA256Variants() throws NoSuchAlgorithmException {
