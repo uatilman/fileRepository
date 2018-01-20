@@ -1,5 +1,6 @@
 import org.apache.commons.codec.digest.DigestUtils;
 
+import javax.xml.bind.DatatypeConverter;
 import java.sql.*;
 import java.util.Arrays;
 
@@ -18,19 +19,48 @@ public class SQLHandler {
     }
 
 
+    public String getHash(String login) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement("SELECT password_hash  FROM users WHERE login = ?");
+
+        ps.setString(1, login);
+        ResultSet rs = ps.executeQuery();
+        String hash = rs.getString(1);
+        ps.close();
+
+        return hash;
+    }
+    public String getSalt(String login) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement("SELECT salt  FROM users WHERE login = ?");
+
+        ps.setString(1, login);
+        ResultSet rs = ps.executeQuery();
+        String salt = rs.getString(1);
+        ps.close();
+        return salt;
+    }
+
     public boolean isPasswordAvalible(String login, String password) throws SQLException {
         PreparedStatement ps = connection.prepareStatement("SELECT password_hash, salt  FROM users WHERE login = ?");
 
         ps.setString(1, login);
         ResultSet rs = ps.executeQuery();
-        System.out.println(rs.getString(1));
-        System.out.println(rs.getString(2));
+        System.out.println("rs1 " + rs.getString(1));
+        System.out.println("rs2 " + rs.getString(2));
+
+        String s0 = rs.getString(1);
+        byte[] b = DatatypeConverter.parseHexBinary(rs.getString(1));
+        String s1 = DatatypeConverter.printHexBinary(b);
+
+        System.out.println("testConvert " + s0);
+        System.out.println("testConvert " + s1);
+
+
         return rs.next() &&
                 Passwords.
                         isExpectedPassword(
                                 password.toCharArray(),
-                                rs.getString(1).getBytes(),
-                                rs.getString(2).getBytes());
+                                DatatypeConverter.parseHexBinary(rs.getString(1)),
+                                DatatypeConverter.parseHexBinary(rs.getString(2)));
     }
 
     public void insertTestDate() throws SQLException {

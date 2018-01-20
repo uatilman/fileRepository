@@ -1,5 +1,6 @@
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.xml.bind.DatatypeConverter;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -40,14 +41,18 @@ public class Passwords {
         byte hash[] = Passwords.hash(data.toCharArray(), salt);
         String[] strings = new String[2];
 
-        strings[0] = bytesToHex(hash);
-        strings[1] = bytesToHex(salt);
+        strings[0] = DatatypeConverter.printHexBinary(hash);
+        strings[1] = DatatypeConverter.printHexBinary(salt);
         return strings;
     }
 
     private static String bytesToHex(byte[] bytes) {
+        DatatypeConverter.printHexBinary(bytes);
         StringBuffer result = new StringBuffer();
+
         for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
+        System.out.println("m1 " + DatatypeConverter.printHexBinary(bytes));
+        System.out.println("m2 " + result.toString());
         return result.toString();
     }
 
@@ -81,9 +86,17 @@ public class Passwords {
      * @param expectedHash the expected hashed value of the password
      * @return true if the given password and salt match the hashed value, false otherwise
      */
-    public static boolean isExpectedPassword(char[] password, byte[] salt, byte[] expectedHash) {
+    public static boolean isExpectedPassword(char[] password, byte[] expectedHash, byte[] salt) {
         byte[] pwdHash = hash(password, salt);
+
+
+        System.out.println("new Hash " + DatatypeConverter.printHexBinary(pwdHash));
+        System.out.println("old Hash " + DatatypeConverter.printHexBinary(expectedHash));
+        System.out.println("old Salt " + DatatypeConverter.printHexBinary(salt));
+//        bytesToHex(pwdHash);
+
         Arrays.fill(password, Character.MIN_VALUE);
+
         if (pwdHash.length != expectedHash.length) return false;
         for (int i = 0; i < pwdHash.length; i++) {
             if (pwdHash[i] != expectedHash[i]) return false;

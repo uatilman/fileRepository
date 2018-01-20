@@ -1,5 +1,6 @@
 
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -46,8 +47,14 @@ public class FileThread implements Runnable {
 //                    System.out.println(message.getPassword());
 //                    System.out.println(sqlHandler.getPassByLogin(message.getLogin()));
 //                    System.out.println(message.getPassword().equals(sqlHandler.getPassByLogin(message.getLogin())));
-
-                    if (sqlHandler.isPasswordAvalible(message.getLogin(), message.getPassword())) {
+//                    if (sqlHandler.isPasswordAvalible(message.getLogin(), message.getPassword())) {
+                    if (
+                            Passwords.
+                                    isExpectedPassword(
+                                            message.getPassword().toCharArray(),
+                                            DatatypeConverter.parseHexBinary(sqlHandler.getHash(message.getLogin())),
+                                            DatatypeConverter.parseHexBinary(sqlHandler.getSalt(message.getLogin())))
+                            ) {
                         this.userName = message.getLogin();
                         serverCore.printMessage("\tclient login as " + userName);
                         rootUserDir = SERVER_ADDRESS + userName + "\\";
