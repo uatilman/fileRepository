@@ -36,7 +36,7 @@ public class Passwords {
         return salt;
     }
 
-    public static String[] getHashAndSolt(String data) {
+    public static String[] getHashAndSalt(String data) {
         byte salt[] = Passwords.getNextSalt();
         byte hash[] = Passwords.hash(data.toCharArray(), salt);
         String[] strings = new String[2];
@@ -46,13 +46,14 @@ public class Passwords {
         return strings;
     }
 
+    /**
+     * Replaced by a structure DatatypeConverter.printHexBinary(bytes)
+     */
+    @Deprecated
     private static String bytesToHex(byte[] bytes) {
         DatatypeConverter.printHexBinary(bytes);
-        StringBuffer result = new StringBuffer();
-
+        StringBuilder result = new StringBuilder();
         for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
-        System.out.println("m1 " + DatatypeConverter.printHexBinary(bytes));
-        System.out.println("m2 " + result.toString());
         return result.toString();
     }
 
@@ -64,7 +65,7 @@ public class Passwords {
      * @param salt     a 16 bytes salt, ideally obtained with the getNextSalt method
      * @return the hashed password with a pinch of salt
      */
-    public static byte[] hash(char[] password, byte[] salt) {
+    private static byte[] hash(char[] password, byte[] salt) {
         PBEKeySpec spec = new PBEKeySpec(password, salt, ITERATIONS, KEY_LENGTH);
         Arrays.fill(password, Character.MIN_VALUE);
         try {
@@ -86,15 +87,8 @@ public class Passwords {
      * @param expectedHash the expected hashed value of the password
      * @return true if the given password and salt match the hashed value, false otherwise
      */
-    public static boolean isExpectedPassword(char[] password, byte[] expectedHash, byte[] salt) {
+    static boolean isExpectedPassword(char[] password, byte[] expectedHash, byte[] salt) {
         byte[] pwdHash = hash(password, salt);
-
-
-        System.out.println("new Hash " + DatatypeConverter.printHexBinary(pwdHash));
-        System.out.println("old Hash " + DatatypeConverter.printHexBinary(expectedHash));
-        System.out.println("old Salt " + DatatypeConverter.printHexBinary(salt));
-//        bytesToHex(pwdHash);
-
         Arrays.fill(password, Character.MIN_VALUE);
 
         if (pwdHash.length != expectedHash.length) return false;
