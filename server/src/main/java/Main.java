@@ -1,28 +1,69 @@
 import org.apache.commons.codec.digest.DigestUtils;
 import sun.misc.BASE64Encoder;
-import sun.security.util.Password;
-
+;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.util.*;
+
+import java.util.stream.Collectors;
 
 public class Main {
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-//        testSHA256Variants();
-        String data = "hello";
-
-//        byte salt[] = Passwords.getNextSalt();
-//        byte hash[] = Passwords.hash(data.toCharArray(), salt);
-//        String hashStr = bytesToHex(hash);
-//        String saltStr = bytesToHex(hash);
+    private static List<Path> paths = new ArrayList<>();
 
 
-//        for (int i = 0; i < 5; i++) {
-//            System.out.println(bytesToHex(Passwords.getNextSalt()));
-//        }
-//        System.out.println(hashStr);
-//        System.out.println(Passwords.isExpectedPassword(data.toCharArray(), salt, hash));
+    private static List<Path> paths1 = new ArrayList<>();
+    private static URI SERVER_ADDRESS;
+
+
+    public static void main(String[] args) throws Exception {
+        System.out.println();
+        SERVER_ADDRESS = new File("D:\\OneDrive\\programming\\java\\java5\\fileRepository\\serverFiles").toURI();
+        File file = new File("D:\\OneDrive\\programming\\java\\java5\\fileRepository\\serverFiles");
+
+
+        System.out.println(file);
+        //Тестируем создание дерева файлов
+
+//        System.out.println(paths);
+
+        for (File f : getPaths(file)) {
+            System.out.println(f);
+        }
+
+
+//        File file = new File(SERVER_ADDRESS);
+//
+//      paths.addAll(paths.stream().filter(path -> Files.isDirectory(path)).collect(Collectors.toList()));
+//      paths.forEach(path -> System.out.println(path.getFileName()));
+
+
+    }
+
+    private static List<File> getPaths(File file) throws Exception {
+        List<File> files = new ArrayList<>();
+        Queue<File> filesQueue = new PriorityQueue<>(Arrays.asList(Objects.requireNonNull(file.listFiles(File::isDirectory))));
+        List<File> files1 = new ArrayList<>(Arrays.asList(Objects.requireNonNull(file.listFiles(pathname -> !pathname.isDirectory()))));
+
+        while (!filesQueue.isEmpty()) {
+            File f = filesQueue.remove();
+            files.add(f);
+            filesQueue.addAll(Arrays.asList(Objects.requireNonNull(f.listFiles(File::isDirectory))));
+            files1.addAll(Arrays.asList(Objects.requireNonNull(f.listFiles(pathname -> !pathname.isDirectory()))));
+        }
+        files.addAll(files1);
+
+        return files;
+
     }
 
     private static void testSHA256Variants() throws NoSuchAlgorithmException {

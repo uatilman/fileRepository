@@ -36,6 +36,7 @@ public class Passwords {
         return salt;
     }
 
+    //TODO перенсти в единственный метод где используется
     public static String[] getHashAndSalt(String data) {
         byte salt[] = Passwords.getNextSalt();
         byte hash[] = Passwords.hash(data.toCharArray(), salt);
