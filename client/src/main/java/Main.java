@@ -6,7 +6,8 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
     public static Stage stage;
-//java -jar client-1.0-SNAPSHOT.jar
+
+    //java -jar client-1.0-SNAPSHOT.jar
     @Override
     public void start(Stage primaryStage) throws Exception {
         stage = primaryStage;
