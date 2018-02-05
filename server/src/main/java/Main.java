@@ -1,11 +1,9 @@
 import org.apache.commons.codec.digest.DigestUtils;
 import sun.misc.BASE64Encoder;
-;
+
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -17,53 +15,104 @@ import java.util.stream.Collectors;
 
 public class Main {
     private static List<Path> paths = new ArrayList<>();
-
-
     private static List<Path> paths1 = new ArrayList<>();
-    private static URI SERVER_ADDRESS;
-
+    List<MyFile> myFiles = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         System.out.println();
-        SERVER_ADDRESS = new File("D:\\OneDrive\\programming\\java\\java5\\fileRepository\\serverFiles").toURI();
-        File file = new File("D:\\OneDrive\\programming\\java\\java5\\fileRepository\\");
+        File file = new File("D:\\OneDrive\\programming\\java\\java5\\fileRepository\\serverFiles");
+        paths = getPaths(file);
 
+        Main main = new Main();
+        for (Path p : paths) {
+            main.myFiles.add(new MyFile(getAttributes(p), p.toString()));
+        }
+        main.myFiles.sort(Comparator.comparing(MyFile::getFileName));
+
+        for (int i = 0; i < main.myFiles.size(); i++) {
+            System.out.println(main.myFiles.get(i));
+        }
+
+    }
+
+    private static void streamTest() {
+        paths.addAll(paths.stream().filter(path -> Files.isDirectory(path)).collect(Collectors.toList()));
+        paths.forEach(path -> System.out.println(path.getFileName()));
+    }
+
+    private static void getNameWithIntParamTest(File file) {
         System.out.println(file.toPath().getName(0));
         System.out.println(file.toPath().getName(1));
         System.out.println(file.toPath().getName(2));
         System.out.println(file.toPath().getName(3));
         System.out.println(file.toPath().getName(4));
-/*//        BasicFileAttributes attr;
-//        attr = Files.readAttributes(file.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+    }
+
+    private static Map<String, Object> getAttributes(Path path) throws IOException {
+        BasicFileAttributes attr;
+        attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
 //        System.out.println("Creation time: " + attr.creationTime());
 //        System.out.println("Last access time: " + attr.lastAccessTime());
-//        System.out.println("Last modified time: " + attr.lastModifiedTime());*/
+//        System.out.println("Last modified time: " + attr.lastModifiedTime());
 
-/*        Map<String, Object> map = Files.readAttributes(file.toPath(), "*", LinkOption.NOFOLLOW_LINKS);
-
-        for (Map.Entry<String, Object> kv : map.entrySet()) {
-            System.out.println("key " + kv.getKey() + " --- " + kv.getValue());
-        }*/
-
-        System.out.println(file);
-        //Тестируем создание дерева файлов
-
-//        System.out.println(paths);
-
-        for (Path f : getPaths(file)) {
-            System.out.println(f);
-        }
-
-
-//        File file = new File(SERVER_ADDRESS);
-//
-//      paths.addAll(paths.stream().filter(path -> Files.isDirectory(path)).collect(Collectors.toList()));
-//      paths.forEach(path -> System.out.println(path.getFileName()));
-
+        return Files.readAttributes(path, "*", LinkOption.NOFOLLOW_LINKS);
+//        System.err.println(map.getClass());
+//        for (Map.Entry<String, Object> kv : map.entrySet()) {
+//            System.out.println("key " + kv.getKey() + " --- " + kv.getValue());
+//        }
 
     }
 
-    //TODO ввести в файл на работе
+    public static class MyFile implements Serializable {
+        Map<String, Object> attributeMap;
+        String fileName;
+
+        public MyFile(Map<String, Object> attributeMap, String fileName) {
+            this.attributeMap = attributeMap;
+            this.fileName = fileName;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("File: [").append(fileName).append("]\n");
+            for (Map.Entry<String, Object> kv : attributeMap.entrySet()) {
+                builder.append(kv.getKey()).append(" --- ").append(kv.getValue()).append("\n");
+            }
+
+            return builder.toString();
+        }
+
+        public Map<String, Object> getAtributeMap() {
+            return attributeMap;
+        }
+
+        public void setAtributeMap(Map<String, Object> atributeMap) {
+            this.attributeMap = atributeMap;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public void setFileName(String fileName) {
+            this.fileName = fileName;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            MyFile myFile = (MyFile) obj;
+            return this.getFileName().equals(myFile.getFileName()) &&
+                    (this.getAtributeMap().get("isDirectory").equals(myFile.getAtributeMap().get("isDirectory")) ||
+                            this.getAtributeMap().get("lastModifiedTime").equals(myFile.getAtributeMap().get("lastModifiedTime")));
+        }
+
+        @Override
+        public int hashCode() {
+            return getFileName().hashCode();
+        }
+    }
+
     private static List<Path> getPaths(File file) throws Exception {
 
         List<Path> paths = new ArrayList<>();
