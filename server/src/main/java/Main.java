@@ -83,7 +83,7 @@ public class Main {
             return builder.toString();
         }
 
-        public Map<String, Object> getAtributeMap() {
+        public Map<String, Object> getAttributeMap() {
             return attributeMap;
         }
 
@@ -103,8 +103,8 @@ public class Main {
         public boolean equals(Object obj) {
             MyFile myFile = (MyFile) obj;
             return this.getFileName().equals(myFile.getFileName()) &&
-                    (this.getAtributeMap().get("isDirectory").equals(myFile.getAtributeMap().get("isDirectory")) ||
-                            this.getAtributeMap().get("lastModifiedTime").equals(myFile.getAtributeMap().get("lastModifiedTime")));
+                    (this.getAttributeMap().get("isDirectory").equals(myFile.getAttributeMap().get("isDirectory")) ||
+                            this.getAttributeMap().get("lastModifiedTime").equals(myFile.getAttributeMap().get("lastModifiedTime")));
         }
 
         @Override
