@@ -1,9 +1,9 @@
+package myTests;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import sun.misc.BASE64Encoder;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -19,6 +19,8 @@ public class Main {
     List<MyFile> myFiles = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
+
+
         System.out.println();
         File file = new File("D:\\OneDrive\\programming\\java\\java5\\fileRepository\\serverFiles");
         paths = getPaths(file);
@@ -32,7 +34,13 @@ public class Main {
         for (int i = 0; i < main.myFiles.size(); i++) {
             System.out.println(main.myFiles.get(i));
         }
-
+//        Process process = Runtime.getRuntime().exec("cmd /C cls");
+//        Process process = Runtime.getRuntime().exec("cmd /C start cls");
+//        OutputStream out = process.getOutputStream();
+//        ObjectOutputStream oos = new ObjectOutputStream(out);
+//        oos.writeChars("Hello");
+//        Thread.sleep(5000);
+//        oos.close();
     }
 
     private static void streamTest() {

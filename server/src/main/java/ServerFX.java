@@ -4,7 +4,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-public class ServerMain extends Application {
+public class ServerFX extends Application {
     private static Stage stage;
 
     @Override
@@ -13,23 +13,21 @@ public class ServerMain extends Application {
         stage = primaryStage;
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/sample.fxml"));
         Parent root = loader.load();
-        ServerController serverController = loader.getController();
+        ServerControllerFX serverControllerFX = loader.getController();
         primaryStage.setTitle("Server");
         primaryStage.setScene(new Scene(root, 500, 300));
         primaryStage.show();
-        serverController.printMessage("Welcome to server ");
+        serverControllerFX.printMessage("Welcome to server ");
 
-        ServerCore core = new ServerCore(serverController);
-        serverController.setServerCore(core);
-        primaryStage.setOnCloseRequest(event -> serverController.closingWindow());
+        ServerCore core = new ServerCore(serverControllerFX);
+        serverControllerFX.setServerCore(core);
+        primaryStage.setOnCloseRequest(event -> serverControllerFX.close());
         core.start();
 
     }
 
     public static void main(String[] args) {
-
         launch(args);
-
     }
 
 }

@@ -1,25 +1,10 @@
+public interface ServerController {
 
-import javafx.fxml.FXML;
-import javafx.scene.control.TextArea;
+    void clear();
 
-public class ServerController {
-    @FXML
-    private TextArea textArea;
-    private ServerCore serverCore;
+    void setServerCore(ServerCore serverCore);
 
-    public void clearTextArea() {
-        textArea.clear();
-    }
+    void printMessage(String text);
 
-    public void setServerCore(ServerCore serverCore) {
-        this.serverCore = serverCore;
-    }
-
-    public void printMessage(String text) {
-        textArea.appendText(text + "\n");
-    }
-
-    public void closingWindow() {
-        serverCore.closeWindow();
-    }
+    void close();
 }

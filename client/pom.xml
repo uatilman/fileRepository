@@ -23,7 +23,7 @@
                     <archive>
                         <manifest>
                             <!--С учетом пакетов если они есть-->
-                            <mainClass>Main</mainClass>
+                            <mainClass>myTests.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -36,7 +36,7 @@
                     <archive>
                         <manifest>
                             <!--С учетом пакетов если они есть-->
-                            <mainClass>ServerMain</mainClass>
+                            <mainClass>Start</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
