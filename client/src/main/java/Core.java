@@ -4,7 +4,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
-import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -91,6 +90,7 @@ public class Core {
                     do {
 //                        String s = (String) is.readObject();
                         Message message = (Message) is.readObject();
+                        System.out.println(message);
                         if (message.getMessageType() == Message.MessageType.AUTHORIZATION) {
                             break;
                         } else {
@@ -99,10 +99,12 @@ public class Core {
                         }
                     } while (true);
 
-//                    setAuthorization();
+                    setAuthorization();
 
                     while (true) {
                         Message message = (Message) is.readObject();
+                        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+                        System.out.println(message);
                         switch (message.getMessageType()) {
                             case FILE_LIST:
                                 MyFile.print(message.getFiles());

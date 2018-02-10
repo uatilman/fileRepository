@@ -1,6 +1,7 @@
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.List;
 
 public class Message implements Serializable {
@@ -19,6 +20,20 @@ public class Message implements Serializable {
     private List<MyFile> files;
     private String fileName;
     private byte[] date;
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageType=" + messageType +
+                ", file=" + file +
+                ", login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", files=" + files +
+                ", fileName='" + fileName + '\'' +
+                ", date=" + Arrays.toString(date) +
+                '}';
+    }
+
     public Message(MessageType messageType) {
         this.messageType = messageType;
     }

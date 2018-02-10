@@ -7,11 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.FileAttribute;
+
 import java.sql.SQLException;
-import java.util.ArrayList;
+
 import java.util.List;
-import java.util.ListIterator;
 
 public class FileThread implements Runnable {
     public Socket socket;
@@ -73,8 +72,9 @@ public class FileThread implements Runnable {
                         if (!Files.exists(userPath))
                             Files.createDirectory(userPath);
 
-                        Message message1 = new Message(Message.MessageType.FILE_LIST, getFilesList());
+                        Message message1 = new Message(Message.MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir), Paths.get(rootUserDir)));
                         oos.writeObject(message1);
+                        oos.flush();
 //                        synchronization();
 
 

@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.DirectoryStream;
@@ -9,30 +10,22 @@ import java.util.stream.*;
 
 public class MyFile implements Serializable {
     private Map<String, String> attributeMap;
-    private Path path;
+    private transient Path path;
     private List<MyFile> childList;
-
-    public MyFile(Map<String, String> attributeMap, Path path) {
-        this.attributeMap = attributeMap;
-        this.path = path.toAbsolutePath();
-        this.childList = new ArrayList<>();
-    }
-
-//    public MyFile(Path path) throws IOException {
-//        this.attributeMap = Files.readAttributes(path, "*", LinkOption.NOFOLLOW_LINKS);
-//        this.path = path.toAbsolutePath();
-//        this.childList = new ArrayList<>();
-//    }
+    private File file;
 
     public MyFile(Path path, Path root) throws IOException {
         Map<String, Object> attributeMap = Files.readAttributes(path, "*", LinkOption.NOFOLLOW_LINKS);
         Map<String, String> myAttributeMap = new HashMap<>();
+
         for (Map.Entry<String, Object> kv : attributeMap.entrySet()) {
             if (kv.getValue() != null)
                 myAttributeMap.put(kv.getKey(), kv.getValue().toString());
         }
+
         this.attributeMap = myAttributeMap;
         this.path = root.toAbsolutePath().relativize(path.toAbsolutePath());
+        this.file = this.path.toFile();
         this.childList = new ArrayList<>();
     }
 
@@ -46,6 +39,9 @@ public class MyFile implements Serializable {
     }
 
     //TODO ошибка в преобразовании путей, относитедьные пути исключены
+
+
+
     public static List<MyFile> getTree(Path relativePath, Path root) {
         Path path = root.resolve(relativePath);
         List<MyFile> myFiles = new ArrayList<>();
@@ -88,7 +84,7 @@ public class MyFile implements Serializable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("\nFile: [").append(path).append("]\n");
+        builder.append("\nFile: [").append(file).append("]\n");
         for (Map.Entry<String, String> kv : attributeMap.entrySet()) {
             builder.append(kv.getKey()).append(" --- ").append(kv.getValue()).append("\n");
         }
