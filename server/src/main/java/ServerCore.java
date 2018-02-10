@@ -3,12 +3,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerCore {
-    private ServerControllerFX serverControllerFX;
+    private ServerController serverController;
     private ServerSocket serverSocket;
     private Socket socket;
 
-    public ServerCore(ServerControllerFX serverControllerFX) {
-        this.serverControllerFX = serverControllerFX;
+    public ServerCore(ServerController serverController) {
+        this.serverController = serverController;
     }
 
     public void start() throws IOException {
@@ -16,7 +16,7 @@ public class ServerCore {
         new Thread(() -> {
             try {
                 while (true) {
-                    serverControllerFX.printMessage("wait clients");
+                    serverController.printMessage("wait clients");
                     socket = serverSocket.accept();
                     new Thread(new FileThread(socket, null, this)).start();
                 }
@@ -29,7 +29,7 @@ public class ServerCore {
     }
 
     public void printMessage(String message) {
-        serverControllerFX.printMessage(message);
+        serverController.printMessage(message);
     }
 
     public void closeWindow() {
