@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class Main {
     private static List<Path> paths = new ArrayList<>();
     private static List<Path> paths1 = new ArrayList<>();
-    List<MyFile> myFiles = new ArrayList<>();
+    List<MyFile1> myFile1s = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
 
@@ -27,12 +27,12 @@ public class Main {
 
         Main main = new Main();
         for (Path p : paths) {
-            main.myFiles.add(new MyFile(getAttributes(p), p.toString()));
+            main.myFile1s.add(new MyFile1(getAttributes(p), p.toString()));
         }
-        main.myFiles.sort(Comparator.comparing(MyFile::getFileName));
+        main.myFile1s.sort(Comparator.comparing(MyFile1::getFileName));
 
-        for (int i = 0; i < main.myFiles.size(); i++) {
-            System.out.println(main.myFiles.get(i));
+        for (int i = 0; i < main.myFile1s.size(); i++) {
+            System.out.println(main.myFile1s.get(i));
         }
 //        Process process = Runtime.getRuntime().exec("cmd /C cls");
 //        Process process = Runtime.getRuntime().exec("cmd /C start cls");
@@ -71,11 +71,11 @@ public class Main {
 
     }
 
-    public static class MyFile implements Serializable {
+    public static class MyFile1 implements Serializable {
         Map<String, Object> attributeMap;
         String fileName;
 
-        public MyFile(Map<String, Object> attributeMap, String fileName) {
+        public MyFile1(Map<String, Object> attributeMap, String fileName) {
             this.attributeMap = attributeMap;
             this.fileName = fileName;
         }
@@ -109,10 +109,10 @@ public class Main {
 
         @Override
         public boolean equals(Object obj) {
-            MyFile myFile = (MyFile) obj;
-            return this.getFileName().equals(myFile.getFileName()) &&
-                    (this.getAttributeMap().get("isDirectory").equals(myFile.getAttributeMap().get("isDirectory")) ||
-                            this.getAttributeMap().get("lastModifiedTime").equals(myFile.getAttributeMap().get("lastModifiedTime")));
+            MyFile1 myFile1 = (MyFile1) obj;
+            return this.getFileName().equals(myFile1.getFileName()) &&
+                    (this.getAttributeMap().get("isDirectory").equals(myFile1.getAttributeMap().get("isDirectory")) ||
+                            this.getAttributeMap().get("lastModifiedTime").equals(myFile1.getAttributeMap().get("lastModifiedTime")));
         }
 
         @Override

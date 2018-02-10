@@ -22,4 +22,9 @@ public class ServerControllerConsole implements ServerController {
 
     }
 
+    @Override
+    public void printErrMessage(String message) {
+        System.err.println(message);
+    }
+
 }

@@ -1,3 +1,4 @@
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -15,14 +16,14 @@ public class Message implements Serializable {
     private File file;
     private String login;
     private String password;
-    private List<File> files;
+    private List<MyFile> files;
     private String fileName;
     private byte[] date;
     public Message(MessageType messageType) {
         this.messageType = messageType;
     }
 
-    public List<File> getFiles() {
+    public List<MyFile> getFiles() {
         return files;
     }
 
@@ -40,7 +41,7 @@ public class Message implements Serializable {
         this.date = date;
     }
 
-    public Message(MessageType messageType, List<File> files) {
+    public Message(MessageType messageType, List<MyFile> files) {
         this.messageType = messageType;
         this.files = files;
     }

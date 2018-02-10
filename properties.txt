@@ -1,0 +1,2 @@
+[Sync folders]
+D:\OneDrive\programming\java\java5\fileRepository\clientFiles

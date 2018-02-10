@@ -13,6 +13,7 @@
     <modules>
         <module>client</module>
         <module>server</module>
+        <module>utils</module>
     </modules>
     <properties>
         <!--По дефолту мавенн работает с java 1.6 если нужно поднять версию, указываем так:-->

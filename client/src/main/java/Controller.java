@@ -32,7 +32,7 @@ public class Controller {
 
     public void getFilesList() {
         FileChooser fileChooser = new FileChooser();//Класс работы с диалогом выборки и сохранения
-        fileChooser.setTitle("Выбирите файлы для отправки");//Заголовок диалога
+        fileChooser.setTitle("Выбирите папку для синхронизации");//Заголовок диалога
         core.setFiles(fileChooser.showOpenMultipleDialog(Main.stage));
     }
 

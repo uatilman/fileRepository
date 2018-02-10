@@ -26,4 +26,9 @@ public class ServerControllerFX implements ServerController {
     public void close() {
         serverCore.closeWindow();
     }
+
+    @Override
+    public void printErrMessage(String message) {
+        printMessage(message);
+    }
 }

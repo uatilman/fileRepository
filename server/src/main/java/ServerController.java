@@ -7,4 +7,6 @@ public interface ServerController {
     void printMessage(String text);
 
     void close();
+
+    void printErrMessage(String message);
 }

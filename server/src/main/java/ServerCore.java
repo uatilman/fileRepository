@@ -35,4 +35,8 @@ public class ServerCore {
     public void closeWindow() {
 
     }
+
+    public void printErrMessage(String message) {
+        serverController.printErrMessage(message);
+    }
 }
