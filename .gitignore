@@ -24,3 +24,9 @@ hs_err_pid*
 .idea/
 .idea
 *.idea/.xml
+clientFiles/1/2/2.txt
+clientFiles/1/Новый текстовый документ.txt
+utils/target/maven-archiver/pom.properties
+utils/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+utils/target/maven-status/maven-compiler-plugin/testCompile/default-testCompile/inputFiles.lst
+utils/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
