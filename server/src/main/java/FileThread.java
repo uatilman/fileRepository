@@ -2,14 +2,13 @@
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 
+import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class FileThread implements Runnable {
     public Socket socket;
@@ -48,9 +47,7 @@ public class FileThread implements Runnable {
                     SQLHandler sqlHandler = new SQLHandler();
                     sqlHandler.connect();
 
-                    if (
-                            Passwords.
-                                    isExpectedPassword(
+                    if (Passwords.isExpectedPassword(
                                             message.getPassword().toCharArray(),
                                             DatatypeConverter.parseHexBinary(sqlHandler.getHash(message.getLogin())),
                                             DatatypeConverter.parseHexBinary(sqlHandler.getSalt(message.getLogin())))
@@ -60,38 +57,61 @@ public class FileThread implements Runnable {
 
                         oos.writeObject(new Message(Message.MessageType.AUTHORIZATION));
                         oos.flush();
-
                         rootUserDir = SERVER_ADDRESS + "\\" + userName;
                         Path userPath = Paths.get(rootUserDir);
 
+
                         if (!Files.exists(userPath))
                             Files.createDirectory(userPath);
-                        System.err.println("+++" + Paths.get(rootUserDir));
                         Message message1 = new Message(Message.MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir), Paths.get(rootUserDir)));
                         oos.writeObject(message1);
                         oos.flush();
 
                     } else {
                         oos.writeObject("Логин или Пароль неверные. Повторите попытку.");
+                        oos.flush();
                     }
                 } else if (message.getMessageType() == Message.MessageType.FILE_LIST) {
 
                 } else if (message.getMessageType() == Message.MessageType.FILE) {
-                    System.out.println("fiiiiiiiiiiiile ");
-                    System.out.println(message.getFileName());
+                    Path root = Paths.get(rootUserDir);
+                    Path newPath = root.resolve(message.getMyFile().getFile().toString());
+
+//                    Path newPath = Paths.get(rootUserDir + "\\" + message.getFileName());
+
+                    try {
+                        if (Files.exists(newPath))
+                            Files.delete(newPath);
+                    } catch (NoSuchFileException e) {
+                        System.err.println("NoSuchFileException: " + e.getMessage());
+                    }
                     Files.write(
-                            Paths.get(rootUserDir + "\\" + message.getFileName()),
+                            newPath,
                             message.getDate(),
-                            StandardOpenOption.CREATE);
+                            StandardOpenOption.CREATE);// TODO было CREATE. вернуть, но предварительно удалить файл если он существует
+
+
+                    Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
                     serverCore.printMessage("\t\t End write file " + message.getFileName());
 
                 } else if (message.getMessageType() == Message.MessageType.DIR) {
 
                 } else if (message.getMessageType() == Message.MessageType.GET) {
-                    oos.writeObject(files);
+                    MyFile getMyFile = message.getMyFile();
+                    Path path = Paths.get(rootUserDir + "\\" + getMyFile.getFile().getName());
+                    getMyFile.setLastModifiedTime(Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toMillis());
+
+                    Message newMessage = new Message(
+                            Message.MessageType.FILE,
+                            getMyFile.getFile().getName(),
+                            Files.readAllBytes(path),
+                            getMyFile
+                    );
+
+                    oos.writeObject(newMessage);
                     oos.flush();
 
-                    System.out.printf("Файлы отправдены клиенту");
+                    System.out.println("Файлы отправдены клиенту");
                 } else {
                     oos.writeObject("Команда нераспознана");
                     oos.flush();
@@ -105,7 +125,7 @@ public class FileThread implements Runnable {
                 s = e.getMessage();
             }
             serverCore.printErrMessage(s);
-            e.printStackTrace();
+//            e.printStackTrace();
         }
     }
 

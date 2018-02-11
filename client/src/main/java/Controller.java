@@ -40,9 +40,9 @@ public class Controller {
         textArea.clear();
     }
 
-    public void sendFiles() {
-        core.sendFiles();
-    }
+//    public void sendFiles() {
+//        core.sendFiles();
+//    }
 
     public void printMessage(String text) {
         textArea.appendText(text + "\n");

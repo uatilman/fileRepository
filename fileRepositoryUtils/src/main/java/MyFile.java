@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.file.*;
+import java.nio.file.attribute.FileTime;
 import java.util.*;
 
 public class MyFile implements Serializable {
@@ -12,15 +13,33 @@ public class MyFile implements Serializable {
     private boolean isDirectory;
 
     public MyFile(Path path, Path root) throws IOException {
-        this.lastModifiedTime = Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toMillis();
+        FileTime fileTime = Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS);
+        System.out.println(fileTime);
+        this.lastModifiedTime = fileTime.toMillis();
         this.isDirectory = Files.isDirectory(path);
         this.path = root.toAbsolutePath().relativize(path.toAbsolutePath());
         this.file = this.path.toFile();
         this.childList = new ArrayList<>();
     }
 
+    public long getLastModifiedTime() {
+        return lastModifiedTime;
+    }
+
+    public MyFile(long lastModifiedTime, Path path, List<MyFile> childList, File file, boolean isDirectory) {
+        this.lastModifiedTime = lastModifiedTime;
+        this.path = path;
+        this.childList = childList;
+        this.file = file;
+        this.isDirectory = isDirectory;
+    }
+
     public List<MyFile> getChildList() {
         return childList;
+    }
+
+    public void setLastModifiedTime(long lastModifiedTime) {
+        this.lastModifiedTime = lastModifiedTime;
     }
 
     public void setChildList(List<MyFile> childList) {
@@ -83,6 +102,17 @@ public class MyFile implements Serializable {
         return removeList;
     }
 
+    public static MyFile copy(MyFile src) {
+        List<MyFile> childList = new ArrayList<>();
+        Collections.copy(childList, src.childList);
+        return new MyFile(
+                src.lastModifiedTime,
+                src.path,
+                childList,
+                new File(src.file.getPath()),
+                src.isDirectory
+        );
+    }
 
     public boolean isDirectory() {
         return isDirectory;
@@ -109,13 +139,13 @@ public class MyFile implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MyFile myFile = (MyFile) o;
-        return lastModifiedTime == myFile.lastModifiedTime &&
+        return isDirectory == myFile.isDirectory &&
                 Objects.equals(file, myFile.file);
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(lastModifiedTime, file);
+        return Objects.hash(file, isDirectory);
     }
 }

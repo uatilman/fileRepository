@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Message implements Serializable {
-    public enum MessageType{
+    public enum MessageType {
         AUTHORIZATION,
         FILE_LIST,
         FILE,
@@ -20,6 +20,11 @@ public class Message implements Serializable {
     private List<MyFile> files;
     private String fileName;
     private byte[] date;
+    private MyFile myFile;
+
+    public MyFile getMyFile() {
+        return myFile;
+    }
 
     @Override
     public String toString() {
@@ -50,7 +55,15 @@ public class Message implements Serializable {
         return date;
     }
 
-    public Message(MessageType messageType, String fileName, byte[] date) {
+    public Message(MessageType messageType, String fileName, byte[] date, MyFile myFile) {
+        this.myFile = myFile;
+        this.messageType = messageType;
+        this.fileName = fileName;
+        this.date = date;
+    }
+
+    public Message(MessageType messageType, MyFile myFile) {
+        this.myFile = myFile;
         this.messageType = messageType;
         this.fileName = fileName;
         this.date = date;
