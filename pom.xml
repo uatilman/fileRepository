@@ -13,7 +13,7 @@
     <modules>
         <module>client</module>
         <module>server</module>
-        <module>utils</module>
+        <module>fileRepositoryUtils</module>
     </modules>
     <properties>
         <!--По дефолту мавенн работает с java 1.6 если нужно поднять версию, указываем так:-->
@@ -21,24 +21,23 @@
         <maven.compiler.sourse>1.8.</maven.compiler.sourse>
         <maven.compiler.target>1.8.</maven.compiler.target>
     </properties>
+
     <dependencies>
+
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-jar-plugin</artifactId>
             <version>3.0.2</version>
         </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.7.0</version>
         </dependency>
-        <dependency>
-            <groupId>ru.uatilman</groupId>
-            <artifactId>utils</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+
     </dependencies>
     <build>
         <plugins>

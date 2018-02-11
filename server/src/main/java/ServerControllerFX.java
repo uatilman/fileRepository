@@ -1,7 +1,6 @@
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
-
 public class ServerControllerFX implements ServerController {
     @FXML
     private TextArea textArea;

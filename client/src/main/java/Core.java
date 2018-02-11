@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class Core {
@@ -90,7 +91,6 @@ public class Core {
                     do {
 //                        String s = (String) is.readObject();
                         Message message = (Message) is.readObject();
-                        System.out.println(message);
                         if (message.getMessageType() == Message.MessageType.AUTHORIZATION) {
                             break;
                         } else {
@@ -103,11 +103,12 @@ public class Core {
 
                     while (true) {
                         Message message = (Message) is.readObject();
-                        System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-                        System.out.println(message);
                         switch (message.getMessageType()) {
                             case FILE_LIST:
-                                MyFile.print(message.getFiles());
+                                List<MyFile> serverFilesList = message.getFiles();
+                                List<MyFile> clientFilesList = MyFile.getTree(syncPaths.get(0), syncPaths.get(0));
+
+                                synchronize(clientFilesList, serverFilesList);
                                 break;
                             default:
                                 break;
@@ -137,6 +138,49 @@ public class Core {
         userThread.start();
     }
 
+    private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst) throws Exception {
+        myFilesSrc.sort(Comparator.comparing(MyFile::getFile));
+        myFilesDst.sort(Comparator.comparing(MyFile::getFile));
+
+        if (myFilesSrc.isEmpty()) return;
+        System.out.println("myFilesSrc.size() " + myFilesSrc.size());
+        for (int i = 0; i < myFilesSrc.size(); i++) {
+            System.out.println("i" + i);
+            MyFile currentFile = myFilesSrc.get(i);
+            System.out.println("currentFile \t" + currentFile);
+            System.out.println();
+
+            if (myFilesDst.contains(currentFile)) {
+                myFilesDst.remove(currentFile);
+                myFilesSrc.remove(currentFile);
+                System.out.println("remove --- contains");
+
+            } else {
+                if (!currentFile.isDirectory()) {
+                    myFilesDst.add(currentFile);
+                    System.out.println("*****" + currentFile);
+
+
+                    Path path = syncPaths.get(0).resolve(currentFile.getPath());
+
+
+                    Message message = new Message(
+                            Message.MessageType.FILE,
+                            currentFile.getFile().getName(),
+                            Files.readAllBytes(path)
+                    );
+                    os.writeObject(message);
+                    os.flush();
+                    System.out.println("send");
+                } else {
+                    System.out.println("directory\n");
+                }
+                System.out.println("==========================");
+            }
+        }
+
+    }
+
     private void setAuthorization() {
         isAuthorization = true;
         controller.setAuthorization(true);
@@ -144,16 +188,9 @@ public class Core {
         this.getProperties();
 
         controller.printMessage("Выбраны папки для синхронизации: ");
-        for (Path p : syncPaths) {
-            controller.printMessage(p.toString());
-        }
-        synchronization();
-    }
-
-    public void synchronization() {
-        List<MyFile> clientFilesList = MyFile.getTree(syncPaths.get(0), syncPaths.get(0).getFileName());
-        MyFile.print(clientFilesList);
-
+//        for (Path p : syncPaths) {
+//            controller.printMessage(p.toString());
+//        }
 
     }
 

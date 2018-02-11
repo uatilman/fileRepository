@@ -1,5 +1,4 @@
 
-
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.Socket;
@@ -61,22 +60,16 @@ public class FileThread implements Runnable {
 
                         oos.writeObject(new Message(Message.MessageType.AUTHORIZATION));
                         oos.flush();
-                        //
-
 
                         rootUserDir = SERVER_ADDRESS + "\\" + userName;
                         Path userPath = Paths.get(rootUserDir);
 
-
-
                         if (!Files.exists(userPath))
                             Files.createDirectory(userPath);
-
+                        System.err.println("+++" + Paths.get(rootUserDir));
                         Message message1 = new Message(Message.MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir), Paths.get(rootUserDir)));
                         oos.writeObject(message1);
                         oos.flush();
-//                        synchronization();
-
 
                     } else {
                         oos.writeObject("Логин или Пароль неверные. Повторите попытку.");
@@ -84,8 +77,10 @@ public class FileThread implements Runnable {
                 } else if (message.getMessageType() == Message.MessageType.FILE_LIST) {
 
                 } else if (message.getMessageType() == Message.MessageType.FILE) {
+                    System.out.println("fiiiiiiiiiiiile ");
+                    System.out.println(message.getFileName());
                     Files.write(
-                            Paths.get(rootUserDir + message.getFileName()),
+                            Paths.get(rootUserDir + "\\" + message.getFileName()),
                             message.getDate(),
                             StandardOpenOption.CREATE);
                     serverCore.printMessage("\t\t End write file " + message.getFileName());
@@ -112,12 +107,6 @@ public class FileThread implements Runnable {
             serverCore.printErrMessage(s);
             e.printStackTrace();
         }
-    }
-
-    public List<MyFile> getFilesList() {
-        Path path = Paths.get(rootUserDir);
-        return MyFile.getTree(path, path);
-//        MyFile.print(clientFilesList);
     }
 
 
