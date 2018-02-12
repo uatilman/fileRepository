@@ -151,11 +151,10 @@ public class Core {
 
         for (int i = 0; i < myFilesSrc.size(); i++) {
             MyFile currentSrcFile = myFilesSrc.get(i);
+            System.out.println(currentSrcFile);
             if (currentSrcFile.isDirectory()) { //если дирректория
                 if (myFilesDst.contains(currentSrcFile)) { // если на сервере есть директория с такимже именем
-
                     synchronize(currentSrcFile.getChildList(), myFilesDst.get(myFilesDst.indexOf(currentSrcFile)).getChildList());
-
                     //удаляем файлы из списк синхронизации
                     myFilesSrc.remove(currentSrcFile);
                     myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));

@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.file.*;
 
+import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
 
@@ -14,11 +15,11 @@ public class FileThread implements Runnable {
     public Socket socket;
     public List<File> files;
     private String userName;
-    private final Path SERVER_ADDRESS = Paths.get("D:\\OneDrive\\programming\\java\\java5\\fileRepository\\serverFiles");
+    private final Path SERVER_ADDRESS = Paths.get("serverFiles");
     private String rootUserDir;
     private ServerCore serverCore;
 
-    public FileThread(Socket socket, List<File> files, ServerCore serverCore) {
+    public FileThread(Socket socket, ServerCore serverCore) {
         this.socket = socket;
         this.files = files;
         this.serverCore = serverCore;
@@ -63,7 +64,7 @@ public class FileThread implements Runnable {
 
                         if (!Files.exists(userPath))
                             Files.createDirectory(userPath);
-                        Message message1 = new Message(Message.MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir), Paths.get(rootUserDir)));
+                        Message message1 = new Message(Message.MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir).toAbsolutePath(), Paths.get(rootUserDir).toAbsolutePath()));
                         oos.writeObject(message1);
                         oos.flush();
 
@@ -74,23 +75,35 @@ public class FileThread implements Runnable {
                 } else if (message.getMessageType() == Message.MessageType.FILE_LIST) {
 
                 } else if (message.getMessageType() == Message.MessageType.FILE) {
-                    Path root = Paths.get(rootUserDir);
+                   // TODO везде добавить toAbsolutePath()
+                    Path root = Paths.get(rootUserDir).toAbsolutePath();
+                    System.out.println("root " + root);
                     Path newPath = root.resolve(message.getMyFile().getFile().toString());
 
 //                    Path newPath = Paths.get(rootUserDir + "\\" + message.getFileName());
 
                     try {
-                        if (Files.exists(newPath))
+                        if (Files.exists(newPath)) {
+                            System.out.println("delete " + newPath);
                             Files.delete(newPath);
+
+                        }
                     } catch (NoSuchFileException e) {
                         System.err.println("NoSuchFileException: " + e.getMessage());
                     }
-                    Files.write(
-                            newPath,
-                            message.getDate(),
-                            StandardOpenOption.CREATE);// TODO было CREATE. вернуть, но предварительно удалить файл если он существует
+                    if (message.getMyFile().isDirectory()){
+                        System.out.println("write dir+ " + newPath);
 
+                        Files.createDirectory(newPath);
+                    } else {
+                        System.out.println("write file+ " + newPath);
 
+                        Files.write(
+                                newPath,
+                                message.getDate(),
+                                StandardOpenOption.CREATE);// TODO было CREATE. вернуть, но предварительно удалить файл если он существует
+
+                    }
                     Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
                     serverCore.printMessage("\t\t End write file " + message.getFileName());
 

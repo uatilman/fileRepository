@@ -4,6 +4,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServerCore {
+    public static void main(String[] args) {
+        ServerCore core = new ServerCore(new ServerController());
+        try {
+            core.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private ServerController serverController;
     private ServerSocket serverSocket;
     private Socket socket;
@@ -19,7 +28,7 @@ public class ServerCore {
                 while (true) {
                     serverController.printMessage("wait clients");
                     socket = serverSocket.accept();
-                    new Thread(new FileThread(socket, null, this)).start();
+                    new Thread(new FileThread(socket, this)).start();
                 }
             } catch (IOException e) {
                 e.printStackTrace();

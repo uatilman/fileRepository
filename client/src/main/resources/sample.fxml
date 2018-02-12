@@ -14,10 +14,10 @@
             fx:controller="Controller">
     <top>
         <HBox fx:id="authorizationField" cache="true" BorderPane.alignment="BOTTOM_CENTER">
-                <TextField fx:id="login" prefWidth="150.0" promptText="введите логин" HBox.hgrow="ALWAYS">user1
+                <TextField fx:id="login" prefWidth="150.0" promptText="введите логин" HBox.hgrow="ALWAYS">user2
                 </TextField>
                 <PasswordField fx:id="password" prefWidth="150.0" onAction="#sendLoginPassword" promptText="введите пароль" HBox.hgrow="ALWAYS">
-               pas1
+               pas2
                 </PasswordField>
             <Button fx:id="buttonLogin" minWidth="-Infinity" onAction="#sendLoginPassword" prefWidth="80.0" text="Войти" />
 

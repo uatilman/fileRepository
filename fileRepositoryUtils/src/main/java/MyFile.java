@@ -103,8 +103,8 @@ public class MyFile implements Serializable {
     }
 
     public static MyFile copy(MyFile src) {
-        List<MyFile> childList = new ArrayList<>();
-        Collections.copy(childList, src.childList);
+        List<MyFile> childList = new ArrayList<>(src.childList);
+//        Collections.copy(childList, src.childList);
         return new MyFile(
                 src.lastModifiedTime,
                 src.path,

@@ -12,7 +12,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="fileRepositoryUtils-1.0-SNAPSHOT1" level="project" />
-    <orderEntry type="library" name="Maven: ru.uatilman:utils:1.0-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="fileRepositoryUtils-1.0-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven.plugins:maven-jar-plugin:3.0.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven:maven-plugin-api:3.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven:maven-model:3.0" level="project" />

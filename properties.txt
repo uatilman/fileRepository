@@ -1,2 +1,2 @@
 [Sync folders]
-C:\clientFiles
+C:\Users\usr-mbk00066\Desktop\src

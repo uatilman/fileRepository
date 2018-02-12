@@ -3,15 +3,15 @@ import java.sql.*;
 public class SQLHandler {
     private Connection connection;
 
-    public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        SQLHandler sqlHandler = new SQLHandler();
-        sqlHandler.connect();
-//        System.out.println(sqlHandler.isPasswordAvalible("user1", "pas1"));
-//        sqlHandler.insertTestDate();
-//        System.out.println(sqlHandler.getPassByLogin("user1"));
-        sqlHandler.disconnect();
-
-    }
+//    public static void main(String[] args) throws SQLException, ClassNotFoundException {
+//        SQLHandler sqlHandler = new SQLHandler();
+//        sqlHandler.connect();
+////        System.out.println(sqlHandler.isPasswordAvalible("user1", "pas1"));
+////        sqlHandler.insertTestDate();
+////        System.out.println(sqlHandler.getPassByLogin("user1"));
+//        sqlHandler.disconnect();
+//
+//    }
 
     public String getHash(String login) throws SQLException {
         PreparedStatement ps = connection.prepareStatement("SELECT password_hash  FROM users WHERE login = ?");

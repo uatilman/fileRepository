@@ -1,12 +1,24 @@
-public interface ServerController {
 
-    void clear();
+public class ServerController  {
 
-    void setServerCore(ServerCore serverCore);
+    public void clear() {
 
-    void printMessage(String text);
+    }
 
-    void close();
+    public void setServerCore(ServerCore serverCore) {
 
-    void printErrMessage(String message);
+    }
+
+    public void printMessage(String text) {
+        System.out.println(text);
+    }
+
+    public void close() {
+
+    }
+
+    public void printErrMessage(String message) {
+        System.err.println(message);
+    }
+
 }

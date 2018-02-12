@@ -23,11 +23,7 @@
             <artifactId>commons-codec</artifactId>
             <version>1.11</version>
        </dependency>
-        <dependency>
-            <groupId>ru.uatilman</groupId>
-            <artifactId>client</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+
         <!--           <dependency>
                       <groupId>ru.uatilman</groupId>
                       <artifactId>utils</artifactId>
@@ -45,7 +41,7 @@
                     <archive>
                         <manifest>
                             <!--С учетом пакетов если они есть-->
-                            <mainClass>Start</mainClass>
+                            <mainClass>ServerCore</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
