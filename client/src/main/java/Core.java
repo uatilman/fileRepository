@@ -1,3 +1,5 @@
+import com.sun.istack.internal.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -73,59 +75,53 @@ public class Core {
         }
 
         Thread userThread = new Thread(() -> {
-    controller.printMessage("Авторизируйтесь");
-    try {
+            controller.printMessage("Авторизируйтесь");
+            try {
 
-        while (!isAuthorization) {
-            Message message = (Message) is.readObject();
-            if (message.getMessageType() == MessageType.AUTHORIZATION) {
-                setAuthorization();
-            } else {
-                controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
-            }
-        }
+                while (!isAuthorization) {
+                    Message message = (Message) is.readObject();
+                    if (message.getMessageType() == MessageType.AUTHORIZATION_SUCCESSFUL) {
+                        setAuthorization();
+                    } else {
+                        controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
+                    }
+                }
 
 
-        while (true) {
-            Message message = (Message) is.readObject();
-            switch (message.getMessageType()) {
-                case FILE_LIST:
-                    List<MyFile> serverFilesList = message.getFiles();
-                    List<MyFile> clientFilesList = MyFile.getTree(syncPaths.get(0), syncPaths.get(0));
-                    new Thread(() -> synchronize(clientFilesList, serverFilesList)).start();
-                    break;
-                case FILE:
-//                    Path newPath = Paths.get(syncPaths.get(0) + "\\" + message.getFileName());
-                    // TODO трогаю, что работает закоментировано, потестирвоать
-                    Path newPath = syncPaths.get(0).resolve(message.getMyFile().getFile().toString());
+                while (true) {
+                    Message message = (Message) is.readObject();
+                    switch (message.getMessageType()) {
+                        case FILE_LIST:
+                            List<MyFile> serverFilesList = message.getFiles();
+                            List<MyFile> clientFilesList = MyFile.getTree(syncPaths.get(0), syncPaths.get(0));
+                            new Thread(() -> synchronize(clientFilesList, serverFilesList)).start();
+                            break;
+                        case FILE:
+                            Path newPath = syncPaths.get(0).resolve(message.getMyFile().getFile().toString());
+                            if (Files.exists(newPath)) Files.delete(newPath);
+                            Files.write(
+                                    newPath,
+                                    message.getDate(),
+                                    StandardOpenOption.CREATE_NEW);
+                            Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
+                        default:
+                            break;
+                    }
+                }
 
-                    if (Files.exists(newPath)) Files.delete(newPath);
-                    Files.write(
-                            newPath,
-                            message.getDate(),
-                            StandardOpenOption.CREATE_NEW);
-                    Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
-                default:
-                    break;
-            }
-        }
-
-    } catch (Exception e) {
-        printException(e);
-    } finally {
-        try {
-            is.close();
-            os.close();
-            //TODO доделать до полного возобновления + при старте поставить слушатель на ожидание включения сервера, если Соединение разорвано: из за закрытия окна, клоуз тут неприменять
+            } catch (Exception e) {
+                printException(e);
+            } finally {
+                try {
+                    is.close();
+                    os.close();
+                    //TODO доделать до полного возобновления + при старте поставить слушатель на ожидание включения сервера, если Соединение разорвано: из за закрытия окна, клоуз тут неприменять
 //                        new Core(controller);
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+                } catch (IOException e) {
+                }
+            }
         });
-
-//        });
         userThread.start();
     }
 
@@ -144,12 +140,13 @@ public class Core {
     private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst) {
         myFilesSrc.sort(Comparator.comparing(MyFile::getFile));
         myFilesDst.sort(Comparator.comparing(MyFile::getFile));
-
-        if (myFilesSrc.isEmpty()) return;
-
+        for (MyFile mf : myFilesDst) {
+            System.out.println("synchronize in " + mf);
+        }
+//        if (myFilesSrc.isEmpty()) return;
+        System.err.println();
         for (int i = 0; i < myFilesSrc.size(); i++) {
             MyFile currentSrcFile = myFilesSrc.get(i);
-            System.out.println(currentSrcFile + "isDir? " + currentSrcFile.isDirectory());
             if (currentSrcFile.isDirectory()) { //если дирректория
                 if (myFilesDst.contains(currentSrcFile)) { // если на сервере есть директория с такимже именем
 
@@ -164,7 +161,6 @@ public class Core {
                     //отправить информацию о необходимости создать дирректорию
                     System.out.println("sending...." + currentSrcFile + "isDir? " + currentSrcFile.isDirectory());
 
-                    Path path = syncPaths.get(0).resolve(currentSrcFile.getPath());
                     try {
                         Message message = new Message(
                                 MessageType.DIR,
@@ -217,6 +213,7 @@ public class Core {
                                     MessageType.GET,
                                     currentSrcFile
                             );
+                            controller.printMessage("...Get from server file: " + currentSrcFile.getFile().toPath());
 
                             os.writeObject(message);
                             os.flush();
@@ -251,7 +248,6 @@ public class Core {
                     i--;
                     // TODO в текущей версии подразумевается, что в с сервера нельза удалить файл кроме как через единственный клиент,
                     // TODO в противном случае, на сервере нужно вести журнал удалений, и проверять long удаленного файла
-
                 }
             }
 
@@ -259,23 +255,62 @@ public class Core {
 
         System.out.println("Client");
         for (MyFile mf : myFilesSrc) {
-            System.out.println(mf);
+            System.out.println("server....."  + mf);
         }
 
         System.out.println("Server");
-        //Запрашиваем с сервера недостающие файлы
+        //Запрашиваем с сервера недостающие файлы /создаем папки
         for (MyFile mf : myFilesDst) {
-            System.out.println(mf);
-            try {
-                Message message = new Message(
-                        MessageType.GET,
-                        mf
-                );
+            System.out.println("server....." + mf);
+        }
 
-                os.writeObject(message);
-                os.flush();
+        for (int i = 0; i < myFilesDst.size(); i++) {
+            MyFile myCurrentDst = myFilesDst.get(i);
+
+
+            try {
+                if (myCurrentDst.isDirectory()) {
+                    Path newPath = syncPaths.get(0).resolve(myCurrentDst.getFile().toPath());
+                    System.out.println(". " + newPath + "\n");
+                    deleteIfExists(newPath);
+                    Files.createDirectory(newPath);
+                    System.out.println("\t\t Create Dir: " + newPath + "\n");
+                    //TODO а тут надо выдернуть из дирректории на сервере лист новых файлов, и рекурсивно их запросить
+
+                    MyFile mf = MyFile.copy(myCurrentDst);
+                    mf.setChildList(new ArrayList<>());
+                    myFilesSrc.add(mf);
+                    synchronize(myFilesSrc.get(myFilesSrc.indexOf(myCurrentDst)).getChildList(),
+                            myCurrentDst.getChildList()
+                    );
+
+                } else {
+                    Message message = new Message(
+                            MessageType.GET,
+                            myCurrentDst
+                    );
+                    System.out.println("...Get from server file: " + myCurrentDst.getFile().getName());
+
+                    os.writeObject(message);
+                    os.flush();
+                }
+
+
             } catch (IOException e) {
+                e.printStackTrace();
             }
+
+        }
+    }
+
+    private void deleteIfExists(Path newPath) throws IOException {
+        try {
+            if (Files.exists(newPath)) {
+                System.out.println("delete " + newPath);
+                Files.delete(newPath);
+            }
+        } catch (NoSuchFileException e) {
+            System.err.println("NoSuchFileException: " + e.getMessage());
         }
     }
 
@@ -310,7 +345,7 @@ public class Core {
 
     public void sendLogin(String login, String password) {
         try {
-            Message message = new Message(MessageType.AUTHORIZATION, login, password);
+            Message message = new Message(MessageType.GET_AUTHORIZATION, login, password);
             os.writeObject(message);
             os.flush();
         } catch (IOException e) {

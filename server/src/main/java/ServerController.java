@@ -10,7 +10,7 @@ public class ServerController  {
     }
 
     public void printMessage(String text) {
-        System.out.println(text);
+        System.out.print(text);
     }
 
     public void close() {

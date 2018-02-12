@@ -1,4 +1,6 @@
 
+
+
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.Socket;
@@ -10,23 +12,25 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class FileThread implements Runnable {
-    public Socket socket;
-    public List<File> files;
+    private Socket socket;
+    private List<File> files;
     private String userName;
-    private final Path SERVER_ADDRESS = Paths.get("serverFiles");
+    private final Path SERVER_ADDRESS = Paths.get("C:\\Users\\uatil\\Desktop\\serverFiles");
     private String rootUserDir;
     private ServerStart serverStart;
+    private Path root;
 
     public FileThread(Socket socket, ServerStart serverStart) {
         this.socket = socket;
         this.files = files;
         this.serverStart = serverStart;
+
     }
 
     @Override
     public void run() {
         System.out.println("run");
-        serverStart.printMessage("\tclient connect");
+        serverStart.printMessage("\tclient connect\n");
         InputStream in;
         OutputStream os;
 
@@ -36,109 +40,69 @@ public class FileThread implements Runnable {
             ObjectInputStream ois = new ObjectInputStream(in);
             ObjectOutputStream oos = new ObjectOutputStream(os);
 
+            authorization(ois, oos);
+            userInit();
+            sendFileListMessage(oos);
 
             while (true) {
+
                 Message message;
-
                 message = (Message) ois.readObject();
+                serverStart.printMessage("\t Incoming message " + message.getMessageType());
 
+                switch (message.getMessageType()) {
+                    case COMMAND_NOT_RECOGNIZED:
+                        //TODO add command id - long connection time - increment - toString - server or client
+                        break;
+                    case FILE_LIST:
+                        sendFileListMessage(oos);
+                        serverStart.printMessage("\t\t Files list send\n");
+                    case FILE: {
+                        Path newPath = root.resolve(message.getFileName());
+                        serverStart.printMessage(". " + newPath + "\n");
 
-
-                if (message.getMessageType() == MessageType.AUTHORIZATION) {
-                    SQLHandler sqlHandler = new SQLHandler();
-                    sqlHandler.connect();
-
-                    if (Passwords.isExpectedPassword(
-                                            message.getPassword().toCharArray(),
-                                            DatatypeConverter.parseHexBinary(sqlHandler.getHash(message.getLogin())),
-                                            DatatypeConverter.parseHexBinary(sqlHandler.getSalt(message.getLogin())))
-                            ) {
-                        this.userName = message.getLogin();
-                        serverStart.printMessage("\tclient login as " + userName);
-
-                        oos.writeObject(new Message(MessageType.AUTHORIZATION));
-                        oos.flush();
-
-                        rootUserDir = SERVER_ADDRESS + "\\" + userName;
-                        Path userPath = Paths.get(rootUserDir);
-
-                        if (!Files.exists(userPath))
-                            Files.createDirectory(userPath);
-                        Message message1 = new Message(MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir).toAbsolutePath(), Paths.get(rootUserDir).toAbsolutePath()));
-                        oos.writeObject(message1);
-                        oos.flush();
-
-                    } else {
-                        oos.writeObject("Логин или Пароль неверные. Повторите попытку.");
-                        oos.flush();
-                    }
-                } else if (message.getMessageType() == MessageType.FILE_LIST) {
-                } else if (message.getMessageType() == MessageType.DIR) {
-                    Path root = Paths.get(rootUserDir).toAbsolutePath();
-                    Path newPath = root.resolve(message.getFileName());
-
-
-                        if (Files.exists(newPath)) {
-                            System.out.println("delete " + newPath);
-                            Files.delete(newPath);
-                            throw new IOException("этого недолжно произойти");
-                        }
-
-                    System.out.println("write dir+ " + newPath);
-
-
-                    Files.createDirectory(newPath);
-
-                } else if (message.getMessageType() == MessageType.FILE) {
-                   // TODO везде добавить toAbsolutePath()
-                    Path root = Paths.get(rootUserDir).toAbsolutePath();
-                    Path newPath = root.resolve(message.getFileName());
-
-//                    Path newPath = Paths.get(rootUserDir + "\\" + message.getFileName());
-                    System.out.println("catch file " + newPath + "isDir " + message.getMyFile().isDirectory());
-                    try {
-                        if (Files.exists(newPath)) {
-                            System.out.println("delete " + newPath);
-                            Files.delete(newPath);
-                        }
-                    } catch (NoSuchFileException e) {
-                        System.err.println("NoSuchFileException: " + e.getMessage());
-                    }
-
-
-
-                        System.out.println("write file+ " + newPath);
+                        deleteIfExists(newPath);
                         Files.write(
                                 newPath,
                                 message.getDate(),
-                                StandardOpenOption.CREATE);// TODO было CREATE. вернуть, но предварительно удалить файл если он существует
+                                StandardOpenOption.CREATE);
+                        Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
+                        serverStart.printMessage("\t\t File save to disc " + newPath + "\n");
+                    }
+                    break;
+                    case DIR: {
+                        Path newPath = root.resolve(message.getFileName());
+                        serverStart.printMessage(". " + newPath + "\n");
+                        deleteIfExists(newPath);
+                        Files.createDirectory(newPath);
+                        serverStart.printMessage("\t\t Create Dir: " + newPath + "\n");
+                    }
+                    break;
+                    case GET: {
+                        MyFile needMyFile = message.getMyFile();
+                        serverStart.printMessage(". " + needMyFile.getFile().toPath() + "\n");
+                        Thread.sleep(1000);
 
+                        Path needPath = root.resolve(needMyFile.getFile().toPath());
+                        needMyFile.setLastModifiedTime(Files.getLastModifiedTime(needPath, LinkOption.NOFOLLOW_LINKS).toMillis());
 
-                    Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
-                    serverStart.printMessage("\t\t End write file " + message.getFileName());
-
-                } else if (message.getMessageType() == MessageType.DIR) {
-
-                } else if (message.getMessageType() == MessageType.GET) {
-                    MyFile getMyFile = message.getMyFile();
-                    Path path = Paths.get(rootUserDir + "\\" + getMyFile.getFile().getName());
-                    getMyFile.setLastModifiedTime(Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toMillis());
-
-                    Message newMessage = new Message(
-                            MessageType.FILE,
-                            getMyFile.getFile().getName(),
-                            Files.readAllBytes(path),
-                            getMyFile
-                    );
-
-                    oos.writeObject(newMessage);
-                    oos.flush();
-
-                    System.out.println("Файлы отправдены клиенту");
-                } else {
-                    oos.writeObject("Команда нераспознана");
-                    oos.flush();
+                        Message newMessage = new Message(
+                                MessageType.FILE,
+                                needMyFile.getFile().getName(),
+                                Files.readAllBytes(needPath),
+                                needMyFile
+                        );
+                        oos.writeObject(newMessage);
+                        oos.flush();
+                        serverStart.printMessage("\t\t Файлы отправдены клиенту \n");
+                    }
+                    break;
+                    default:
+                        oos.writeObject(new Message(MessageType.COMMAND_NOT_RECOGNIZED));
+                        oos.flush();
+                        break;
                 }
+
             }
         } catch (IOException | ClassNotFoundException | SQLException e) {
             String s;
@@ -149,7 +113,71 @@ public class FileThread implements Runnable {
             }
             serverStart.printErrMessage(s);
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+    }
+
+    private void deleteIfExists(Path newPath) throws IOException {
+        try {
+            if (Files.exists(newPath)) {
+                System.out.println("delete " + newPath);
+                Files.delete(newPath);
+            }
+        } catch (NoSuchFileException e) {
+            System.err.println("NoSuchFileException: " + e.getMessage());
+        }
+    }
+
+    private void authorization(ObjectInputStream ois, ObjectOutputStream oos) throws IOException, ClassNotFoundException, SQLException {
+        while (true) {
+            Message message;
+            message = (Message) ois.readObject();
+
+
+            if (message.getMessageType() == MessageType.GET_AUTHORIZATION) {
+                SQLHandler sqlHandler = new SQLHandler();
+                sqlHandler.connect();
+
+                if (Passwords.isExpectedPassword(
+                        message.getPassword().toCharArray(),
+                        DatatypeConverter.parseHexBinary(sqlHandler.getHash(message.getLogin())),
+                        DatatypeConverter.parseHexBinary(sqlHandler.getSalt(message.getLogin())))
+                        ) {
+                    this.userName = message.getLogin();
+                    serverStart.printMessage("\tclient login as " + userName + "\n");
+                    oos.writeObject(new Message(MessageType.AUTHORIZATION_SUCCESSFUL));
+                    oos.flush();
+                    break;
+                } else {
+                    oos.writeObject(new Message(MessageType.AUTHORIZATION_FAIL));
+                    oos.flush();
+                }
+                sqlHandler.disconnect();
+
+            } else {
+                oos.writeObject(new Message(MessageType.COMMAND_NOT_RECOGNIZED));
+                oos.flush();
+            }
+        }
+    }
+
+    private void userInit() throws IOException {
+        this.rootUserDir = SERVER_ADDRESS + "\\" + userName;
+        this.root = Paths.get(rootUserDir).toAbsolutePath();
+        if (!Files.exists(root)) {
+            Files.createDirectory(root);
+            serverStart.printMessage("\t Create root Directory " + root + "\n");
+        } else {
+            serverStart.printMessage("\t Root exists " + root + "\n");
+        }
+    }
+
+    private void sendFileListMessage(ObjectOutputStream oos) throws IOException {
+        oos.writeObject(
+                new Message(MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir).toAbsolutePath(), Paths.get(rootUserDir).toAbsolutePath()))
+        );
+        oos.flush();
     }
 
 
@@ -159,9 +187,9 @@ public class FileThread implements Runnable {
             byte[] buffer = new byte[fin.available()];
             fin.read(buffer, 0, buffer.length);
             fos.write(buffer, 0, buffer.length);
-            serverStart.printMessage("\t\t End write file " + file.getName());
+            serverStart.printMessage("\t\t End write file " + file.getName() + "\n");
         } catch (IOException ex) {
-            serverStart.printMessage(ex.getMessage());
+            serverStart.printMessage("Exception " + ex.getMessage() + "\n");
         }
     }
 
