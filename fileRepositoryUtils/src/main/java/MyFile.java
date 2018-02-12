@@ -14,18 +14,12 @@ public class MyFile implements Serializable {
 
     public MyFile(Path path, Path root) throws IOException {
         FileTime fileTime = Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS);
-        System.out.println(fileTime);
         this.lastModifiedTime = fileTime.toMillis();
         this.isDirectory = Files.isDirectory(path);
         this.path = root.toAbsolutePath().relativize(path.toAbsolutePath());
         this.file = this.path.toFile();
         this.childList = new ArrayList<>();
     }
-
-    public long getLastModifiedTime() {
-        return lastModifiedTime;
-    }
-
     public MyFile(long lastModifiedTime, Path path, List<MyFile> childList, File file, boolean isDirectory) {
         this.lastModifiedTime = lastModifiedTime;
         this.path = path;
@@ -33,6 +27,12 @@ public class MyFile implements Serializable {
         this.file = file;
         this.isDirectory = isDirectory;
     }
+
+    public long getLastModifiedTime() {
+        return lastModifiedTime;
+    }
+
+
 
     public List<MyFile> getChildList() {
         return childList;

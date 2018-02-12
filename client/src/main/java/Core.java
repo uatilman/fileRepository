@@ -53,7 +53,6 @@ public class Core {
             controller.clearTextArea();
             for (File f : files) {
                 controller.printMessage(f.getName());
-
             }
         }
     }
@@ -79,7 +78,7 @@ public class Core {
 
         while (!isAuthorization) {
             Message message = (Message) is.readObject();
-            if (message.getMessageType() == Message.MessageType.AUTHORIZATION) {
+            if (message.getMessageType() == MessageType.AUTHORIZATION) {
                 setAuthorization();
             } else {
                 controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
@@ -147,28 +146,30 @@ public class Core {
         myFilesDst.sort(Comparator.comparing(MyFile::getFile));
 
         if (myFilesSrc.isEmpty()) return;
-        System.out.println("myFilesSrc.size() " + myFilesSrc.size());
 
         for (int i = 0; i < myFilesSrc.size(); i++) {
             MyFile currentSrcFile = myFilesSrc.get(i);
-            System.out.println(currentSrcFile);
+            System.out.println(currentSrcFile + "isDir? " + currentSrcFile.isDirectory());
             if (currentSrcFile.isDirectory()) { //если дирректория
                 if (myFilesDst.contains(currentSrcFile)) { // если на сервере есть директория с такимже именем
+
                     synchronize(currentSrcFile.getChildList(), myFilesDst.get(myFilesDst.indexOf(currentSrcFile)).getChildList());
                     //удаляем файлы из списк синхронизации
                     myFilesSrc.remove(currentSrcFile);
                     myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));
                     i--;
+
                 } else { //если директории с таким именем нет
 
                     //отправить информацию о необходимости создать дирректорию
+                    System.out.println("sending...." + currentSrcFile + "isDir? " + currentSrcFile.isDirectory());
+
                     Path path = syncPaths.get(0).resolve(currentSrcFile.getPath());
                     try {
                         Message message = new Message(
-                                Message.MessageType.FILE,
-                                currentSrcFile.getFile().getName(),
-                                Files.readAllBytes(path),
-                                currentSrcFile
+                                MessageType.DIR,
+                                currentSrcFile.getFile().getName()
+
                         );
                         os.writeObject(message);
                         os.flush();
@@ -194,7 +195,7 @@ public class Core {
 
                         try {
                             Message message = new Message(
-                                    Message.MessageType.FILE,
+                                    MessageType.FILE,
                                     currentSrcFile.getFile().getName(),
                                     Files.readAllBytes(path),
                                     currentSrcFile
@@ -213,7 +214,7 @@ public class Core {
                         //просим файл с сервера
                         try {
                             Message message = new Message(
-                                    Message.MessageType.GET,
+                                    MessageType.GET,
                                     currentSrcFile
                             );
 
@@ -236,7 +237,7 @@ public class Core {
 
                     try {
                         Message message = new Message(
-                                Message.MessageType.FILE,
+                                MessageType.FILE,
                                 currentSrcFile.getFile().getName(),
                                 Files.readAllBytes(path),
                                 currentSrcFile
@@ -267,7 +268,7 @@ public class Core {
             System.out.println(mf);
             try {
                 Message message = new Message(
-                        Message.MessageType.GET,
+                        MessageType.GET,
                         mf
                 );
 
@@ -276,37 +277,6 @@ public class Core {
             } catch (IOException e) {
             }
         }
-
-
-//            if (myFilesDst.contains(currentFile)) {
-//                myFilesDst.remove(currentFile);
-//                myFilesSrc.remove(currentFile);
-//                System.out.println("remove --- contains");
-//
-//            } else {
-//                if (!currentFile.isDirectory()) {
-//                    myFilesDst.add(currentFile);
-//                    System.out.println("*****" + currentFile);
-//
-//
-//                    Path path = syncPaths.get(0).resolve(currentFile.getPath());
-//
-//
-//                    Message message = new Message(
-//                            Message.MessageType.FILE,
-//                            currentFile.getFile().getName(),
-//                            Files.readAllBytes(path)
-//                    );
-//                    os.writeObject(message);
-//                    os.flush();
-//                    System.out.println("send");
-//                } else {
-//                    System.out.println("directory\n");
-//                }
-//                System.out.println("==========================");
-//            }
-
-
     }
 
     private void setAuthorization() {
@@ -340,7 +310,7 @@ public class Core {
 
     public void sendLogin(String login, String password) {
         try {
-            Message message = new Message(Message.MessageType.AUTHORIZATION, login, password);
+            Message message = new Message(MessageType.AUTHORIZATION, login, password);
             os.writeObject(message);
             os.flush();
         } catch (IOException e) {

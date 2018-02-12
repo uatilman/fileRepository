@@ -5,7 +5,7 @@ public class ServerController  {
 
     }
 
-    public void setServerCore(ServerCore serverCore) {
+    public void setServerCore(ServerStart serverStart) {
 
     }
 

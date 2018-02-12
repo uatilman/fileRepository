@@ -3,9 +3,9 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class ServerCore {
+public class ServerStart {
     public static void main(String[] args) {
-        ServerCore core = new ServerCore(new ServerController());
+        ServerStart core = new ServerStart(new ServerController());
         try {
             core.start();
         } catch (IOException e) {
@@ -17,7 +17,7 @@ public class ServerCore {
     private ServerSocket serverSocket;
     private Socket socket;
 
-    public ServerCore(ServerController serverController) {
+    public ServerStart(ServerController serverController) {
         this.serverController = serverController;
     }
 

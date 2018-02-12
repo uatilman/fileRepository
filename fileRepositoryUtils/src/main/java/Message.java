@@ -5,13 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Message implements Serializable {
-    public enum MessageType {
-        AUTHORIZATION,
-        FILE_LIST,
-        FILE,
-        DIR,
-        GET
-    }
 
     private MessageType messageType;
     private File file;
@@ -37,6 +30,11 @@ public class Message implements Serializable {
                 ", fileName='" + fileName + '\'' +
                 ", date=" + Arrays.toString(date) +
                 '}';
+    }
+
+    public Message(MessageType messageType, String fileName) {
+        this.messageType = messageType;
+        this.fileName = fileName;
     }
 
     public Message(MessageType messageType) {

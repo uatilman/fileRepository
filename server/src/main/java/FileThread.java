@@ -4,12 +4,10 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.file.*;
 
-import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class FileThread implements Runnable {
     public Socket socket;
@@ -17,18 +15,18 @@ public class FileThread implements Runnable {
     private String userName;
     private final Path SERVER_ADDRESS = Paths.get("serverFiles");
     private String rootUserDir;
-    private ServerCore serverCore;
+    private ServerStart serverStart;
 
-    public FileThread(Socket socket, ServerCore serverCore) {
+    public FileThread(Socket socket, ServerStart serverStart) {
         this.socket = socket;
         this.files = files;
-        this.serverCore = serverCore;
+        this.serverStart = serverStart;
     }
 
     @Override
     public void run() {
         System.out.println("run");
-        serverCore.printMessage("\tclient connect");
+        serverStart.printMessage("\tclient connect");
         InputStream in;
         OutputStream os;
 
@@ -44,7 +42,9 @@ public class FileThread implements Runnable {
 
                 message = (Message) ois.readObject();
 
-                if (message.getMessageType() == Message.MessageType.AUTHORIZATION) {
+
+
+                if (message.getMessageType() == MessageType.AUTHORIZATION) {
                     SQLHandler sqlHandler = new SQLHandler();
                     sqlHandler.connect();
 
@@ -54,17 +54,17 @@ public class FileThread implements Runnable {
                                             DatatypeConverter.parseHexBinary(sqlHandler.getSalt(message.getLogin())))
                             ) {
                         this.userName = message.getLogin();
-                        serverCore.printMessage("\tclient login as " + userName);
+                        serverStart.printMessage("\tclient login as " + userName);
 
-                        oos.writeObject(new Message(Message.MessageType.AUTHORIZATION));
+                        oos.writeObject(new Message(MessageType.AUTHORIZATION));
                         oos.flush();
+
                         rootUserDir = SERVER_ADDRESS + "\\" + userName;
                         Path userPath = Paths.get(rootUserDir);
 
-
                         if (!Files.exists(userPath))
                             Files.createDirectory(userPath);
-                        Message message1 = new Message(Message.MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir).toAbsolutePath(), Paths.get(rootUserDir).toAbsolutePath()));
+                        Message message1 = new Message(MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir).toAbsolutePath(), Paths.get(rootUserDir).toAbsolutePath()));
                         oos.writeObject(message1);
                         oos.flush();
 
@@ -72,50 +72,60 @@ public class FileThread implements Runnable {
                         oos.writeObject("Логин или Пароль неверные. Повторите попытку.");
                         oos.flush();
                     }
-                } else if (message.getMessageType() == Message.MessageType.FILE_LIST) {
+                } else if (message.getMessageType() == MessageType.FILE_LIST) {
+                } else if (message.getMessageType() == MessageType.DIR) {
+                    Path root = Paths.get(rootUserDir).toAbsolutePath();
+                    Path newPath = root.resolve(message.getFileName());
 
-                } else if (message.getMessageType() == Message.MessageType.FILE) {
+
+                        if (Files.exists(newPath)) {
+                            System.out.println("delete " + newPath);
+                            Files.delete(newPath);
+                            throw new IOException("этого недолжно произойти");
+                        }
+
+                    System.out.println("write dir+ " + newPath);
+
+
+                    Files.createDirectory(newPath);
+
+                } else if (message.getMessageType() == MessageType.FILE) {
                    // TODO везде добавить toAbsolutePath()
                     Path root = Paths.get(rootUserDir).toAbsolutePath();
-                    System.out.println("root " + root);
-                    Path newPath = root.resolve(message.getMyFile().getFile().toString());
+                    Path newPath = root.resolve(message.getFileName());
 
 //                    Path newPath = Paths.get(rootUserDir + "\\" + message.getFileName());
-
+                    System.out.println("catch file " + newPath + "isDir " + message.getMyFile().isDirectory());
                     try {
                         if (Files.exists(newPath)) {
                             System.out.println("delete " + newPath);
                             Files.delete(newPath);
-
                         }
                     } catch (NoSuchFileException e) {
                         System.err.println("NoSuchFileException: " + e.getMessage());
                     }
-                    if (message.getMyFile().isDirectory()){
-                        System.out.println("write dir+ " + newPath);
 
-                        Files.createDirectory(newPath);
-                    } else {
+
+
                         System.out.println("write file+ " + newPath);
-
                         Files.write(
                                 newPath,
                                 message.getDate(),
                                 StandardOpenOption.CREATE);// TODO было CREATE. вернуть, но предварительно удалить файл если он существует
 
-                    }
+
                     Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
-                    serverCore.printMessage("\t\t End write file " + message.getFileName());
+                    serverStart.printMessage("\t\t End write file " + message.getFileName());
 
-                } else if (message.getMessageType() == Message.MessageType.DIR) {
+                } else if (message.getMessageType() == MessageType.DIR) {
 
-                } else if (message.getMessageType() == Message.MessageType.GET) {
+                } else if (message.getMessageType() == MessageType.GET) {
                     MyFile getMyFile = message.getMyFile();
                     Path path = Paths.get(rootUserDir + "\\" + getMyFile.getFile().getName());
                     getMyFile.setLastModifiedTime(Files.getLastModifiedTime(path, LinkOption.NOFOLLOW_LINKS).toMillis());
 
                     Message newMessage = new Message(
-                            Message.MessageType.FILE,
+                            MessageType.FILE,
                             getMyFile.getFile().getName(),
                             Files.readAllBytes(path),
                             getMyFile
@@ -137,8 +147,8 @@ public class FileThread implements Runnable {
             } else {
                 s = e.getMessage();
             }
-            serverCore.printErrMessage(s);
-//            e.printStackTrace();
+            serverStart.printErrMessage(s);
+            e.printStackTrace();
         }
     }
 
@@ -149,9 +159,9 @@ public class FileThread implements Runnable {
             byte[] buffer = new byte[fin.available()];
             fin.read(buffer, 0, buffer.length);
             fos.write(buffer, 0, buffer.length);
-            serverCore.printMessage("\t\t End write file " + file.getName());
+            serverStart.printMessage("\t\t End write file " + file.getName());
         } catch (IOException ex) {
-            serverCore.printMessage(ex.getMessage());
+            serverStart.printMessage(ex.getMessage());
         }
     }
 

@@ -41,7 +41,7 @@
                     <archive>
                         <manifest>
                             <!--С учетом пакетов если они есть-->
-                            <mainClass>ServerCore</mainClass>
+                            <mainClass>ServerStart</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
