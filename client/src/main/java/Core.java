@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Core {
-    private boolean isOpen;
+    private boolean isWindowOpen;
     private ObjectOutputStream os;
     private ObjectInputStream is;
     private Controller controller;
@@ -69,7 +69,7 @@ public class Core {
         controller.setCore(this);
 
         //todo
-        isOpen = true;
+        isWindowOpen = true;
 
         try {
             socket = new Socket("localhost", 8189);
@@ -80,7 +80,7 @@ public class Core {
         }
 
         this.userThread = new Thread(() -> {
-            while (true){
+            while (isWindowOpen){
                 try {
                     if (socket.isClosed()) {
                         socket = new Socket("localhost", 8189);
@@ -120,7 +120,6 @@ public class Core {
                             break;
                     }
                 }
-
             } catch (Exception e) {
                 printException(e);
             } finally {
@@ -143,7 +142,6 @@ public class Core {
 
         });
         userThread.start();
-//        userThread.start();
     }
 
     private void printException(Exception e) {
@@ -358,6 +356,6 @@ public class Core {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        isOpen = false;
+        isWindowOpen = false;
     }
 }
