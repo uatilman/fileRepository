@@ -11,7 +11,7 @@ public class ServerController  {
 
     public void printMessage(String text) {
         System.out.print(text);
-        System.out.print("fileServer> ");
+
     }
 
     public void close() {

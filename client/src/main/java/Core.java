@@ -1,4 +1,5 @@
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -14,6 +15,7 @@ public class Core {
     private final static Path SETTINGS_FILE = Paths.get("properties.txt");
     private boolean isWindowOpen;
     private boolean isAuthorization;
+    private List<File> files; // вероятно пригодится для выбора папок для синхронизации
 
     private ObjectOutputStream os;
     private ObjectInputStream is;
@@ -234,11 +236,15 @@ public class Core {
         os.flush();
     }
 
-    public void closeWindow() throws IOException {
-        socket.close();
-        is.close();
-        os.close();
-        isWindowOpen = false;
+    public void closeWindow() {
+        try {
+            socket.close();
+            is.close();
+            os.close();
+            isWindowOpen = false;
+        } catch (IOException e) {
+            controller.printMessage(e.getMessage());
+        }
     }
 
     private void getProperties() {
@@ -261,6 +267,16 @@ public class Core {
                     break;
                 default:
                     break;
+            }
+        }
+    }
+
+    public void setFiles(List<File> files) {
+        this.files = files;
+        if (files != null) {
+            controller.clearTextArea();
+            for (File f : files) {
+                controller.printMessage(f.getName());
             }
         }
     }

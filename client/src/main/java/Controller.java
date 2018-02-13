@@ -7,6 +7,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
+import java.io.IOException;
+
 public class Controller {
     @FXML
     private HBox bottomField;
@@ -48,7 +50,7 @@ public class Controller {
         textArea.appendText(text + "\n");
     }
 
-    public void sendLoginPassword(ActionEvent actionEvent) {
+    public void sendLoginPassword(ActionEvent actionEvent) throws IOException {
         core.sendLogin(login.getText(), password.getText());
     }
 

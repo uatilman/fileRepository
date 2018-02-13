@@ -36,11 +36,11 @@ public class ServerStart {
                     SQLHandler.connect();
                     SQLHandler.getUsers().forEach(System.out::println);
                     SQLHandler.disconnect();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }
+            } else {
+                System.out.println("команда нераспознана");
             }
 
         }
@@ -61,7 +61,7 @@ public class ServerStart {
         new Thread(() -> {
             try {
                 while (isStatusStart) {
-                    serverController.printMessage("\nwait clients\n");
+                    serverController.printMessage("wait clients\n");
                     socket = serverSocket.accept();
                     new Thread(new FileThread(socket, this)).start();
                 }
