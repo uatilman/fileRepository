@@ -13,14 +13,13 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Core {
+    private final static Path SETTINGS_FILE = Paths.get("properties.txt");
     private boolean isWindowOpen;
+    private boolean isAuthorization;
+
     private ObjectOutputStream os;
     private ObjectInputStream is;
     private Controller controller;
-    private boolean isAuthorization;
-    private Thread userThread;
-    private List<File> files;
-    private final static Path SETTINGS_FILE = Paths.get("properties.txt");
     private List<Path> syncPaths;
     private Socket socket = null;
 
@@ -49,26 +48,11 @@ public class Core {
         }
     }
 
-    public void setFiles(List<File> files) {
-        this.files = files;
-        if (files != null) {
-            controller.clearTextArea();
-            for (File f : files) {
-                controller.printMessage(f.getName());
-            }
-        }
-    }
-
-    public Thread getUserThread() {
-        return userThread;
-    }
 
     public Core(Controller controller) {
         this.controller = controller;
         isAuthorization = false;
         controller.setCore(this);
-
-        //todo
         isWindowOpen = true;
 
         try {
@@ -79,8 +63,8 @@ public class Core {
             e.printStackTrace();
         }
 
-        this.userThread = new Thread(() -> {
-            while (isWindowOpen){
+       new Thread(() -> {
+            while (isWindowOpen) {
                 try {
                     if (socket.isClosed()) {
                         socket = new Socket("localhost", 8189);
@@ -90,58 +74,53 @@ public class Core {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            System.out.println(this.getClass());
-            controller.printMessage("Авторизируйтесь");
-            try {
-
-                while (!isAuthorization) {
-                    Message message = (Message) is.readObject();
-                    if (message.getMessageType() == MessageType.AUTHORIZATION_SUCCESSFUL) {
-                        setAuthorization(true);
-                    } else {
-                        controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
-                    }
-                }
-                while (true) {
-                    Message message = (Message) is.readObject();
-                    switch (message.getMessageType()) {
-                        case FILE_LIST:
-                            new Thread(() -> synchronize(
-                                    MyFile.getTree(syncPaths.get(0), syncPaths.get(0)),
-                                    message.getFiles())
-                            ).start();
-                            break;
-                        case FILE:
-                            Path newPath = syncPaths.get(0).resolve(message.getMyFile().getFile().toString());
-                            if (Files.exists(newPath)) Files.delete(newPath);
-                            Files.write(newPath, message.getDate(), StandardOpenOption.CREATE_NEW);
-                            Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
-                        default:
-                            break;
-                    }
-                }
-            } catch (Exception e) {
-                printException(e);
-            } finally {
+                controller.printMessage("Авторизируйтесь");
                 try {
-                    is.close();
-                    os.close();
-                    socket.close();
-                    setAuthorization(false);
-                    //TODO доделать до полного возобновления + при старте поставить слушатель на ожидание включения сервера, если Соединение разорвано: из за закрытия окна, клоуз тут неприменять
-                } catch (IOException e) {
+
+                    while (!isAuthorization) {
+                        Message message = (Message) is.readObject();
+                        if (message.getMessageType() == MessageType.AUTHORIZATION_SUCCESSFUL) {
+                            setAuthorization(true);
+                        } else {
+                            controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
+                        }
+                    }
+                    while (true) {
+                        Message message = (Message) is.readObject();
+                        switch (message.getMessageType()) {
+                            case FILE_LIST:
+                                new Thread(() -> synchronize(
+                                        MyFile.getTree(syncPaths.get(0), syncPaths.get(0)),
+                                        message.getFiles())
+                                ).start();
+                                break;
+                            case FILE:
+                                Path newPath = syncPaths.get(0).resolve(message.getMyFile().getFile().toString());
+                                if (Files.exists(newPath)) Files.delete(newPath);
+                                Files.write(newPath, message.getDate(), StandardOpenOption.CREATE_NEW);
+                                Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
+                            default:
+                                break;
+                        }
+                    }
+                } catch (Exception e) {
+                    printException(e);
+                } finally {
+                    try {
+                        is.close();
+                        os.close();
+                        socket.close();
+                        setAuthorization(false);
+                        //TODO доделать до полного возобновления + при старте поставить слушатель на ожидание включения сервера, если Соединение разорвано: из за закрытия окна, клоуз тут неприменять
+                    } catch (IOException e) {
+                    }
+                }
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
                 }
             }
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-            }
-
-        }
-
-
-        });
-        userThread.start();
+        }).start();
     }
 
     private void printException(Exception e) {
@@ -159,10 +138,6 @@ public class Core {
     private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst) {
         myFilesSrc.sort(Comparator.comparing(MyFile::getFile));
         myFilesDst.sort(Comparator.comparing(MyFile::getFile));
-        for (MyFile mf : myFilesDst) {
-            System.out.println("synchronize in " + mf);
-        }
-
         for (int i = 0; i < myFilesSrc.size(); i++) {
             MyFile currentSrcFile = myFilesSrc.get(i);
             if (currentSrcFile.isDirectory()) { //если дирректория
@@ -226,17 +201,7 @@ public class Core {
 
         }
 
-        System.out.println("Client");
-        for (MyFile mf : myFilesSrc) {
-            System.out.println("server....." + mf);
-        }
-
-        System.out.println("Server");
         //Запрашиваем с сервера недостающие файлы /создаем папки
-        for (MyFile mf : myFilesDst) {
-            System.out.println("server....." + mf);
-        }
-
         for (int i = 0; i < myFilesDst.size(); i++) {
             MyFile myCurrentDst = myFilesDst.get(i);
 
