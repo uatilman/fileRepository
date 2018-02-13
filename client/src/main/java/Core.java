@@ -1,10 +1,8 @@
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-
 import java.net.SocketException;
 import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
@@ -24,36 +22,11 @@ public class Core {
     private Socket socket = null;
 
 
-    public void getProperties() {
-        List<String> settings = null;
-        try {
-            settings = Files.readAllLines(SETTINGS_FILE);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        syncPaths = new ArrayList<>();
-        for (int i = 0; i < (settings != null ? settings.size() : 0); i++) {
-            switch (settings.get(i)) {
-                case "[Sync folders]":
-                    i++;
-                    while (i < settings.size() &&
-                            (settings.get(i).startsWith("\\\\") || settings.get(i).substring(1).startsWith(":\\"))) {
-                        syncPaths.add(Paths.get(settings.get(i++)));
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-
-    public Core(Controller controller) {
+    Core(Controller controller) {
         this.controller = controller;
-        isAuthorization = false;
-        controller.setCore(this);
-        isWindowOpen = true;
+        this.isAuthorization = false;
+        this.controller.setCore(this);
+        this.isWindowOpen = true;
 
         try {
             socket = new Socket("localhost", 8189);
@@ -63,7 +36,7 @@ public class Core {
             e.printStackTrace();
         }
 
-       new Thread(() -> {
+        new Thread(() -> {
             while (isWindowOpen) {
                 try {
                     if (socket.isClosed()) {
@@ -75,6 +48,7 @@ public class Core {
                     e.printStackTrace();
                 }
                 controller.printMessage("Авторизируйтесь");
+
                 try {
 
                     while (!isAuthorization) {
@@ -85,13 +59,21 @@ public class Core {
                             controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
                         }
                     }
-                    while (true) {
+                    while (isAuthorization) {
                         Message message = (Message) is.readObject();
                         switch (message.getMessageType()) {
                             case FILE_LIST:
-                                new Thread(() -> synchronize(
-                                        MyFile.getTree(syncPaths.get(0), syncPaths.get(0)),
-                                        message.getFiles())
+                                new Thread(() -> {
+                                    try {
+
+                                        synchronize(
+                                                MyFile.getTree(syncPaths.get(0), syncPaths.get(0)),
+                                                message.getFiles());
+
+                                    } catch (IOException e) {
+                                        printException(e);
+                                    }
+                                }
                                 ).start();
                                 break;
                             case FILE:
@@ -113,29 +95,16 @@ public class Core {
                         setAuthorization(false);
                         //TODO доделать до полного возобновления + при старте поставить слушатель на ожидание включения сервера, если Соединение разорвано: из за закрытия окна, клоуз тут неприменять
                     } catch (IOException e) {
+                        printException(e);
                     }
-                }
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
                 }
             }
         }).start();
     }
 
-    private void printException(Exception e) {
-        if (e instanceof NoSuchFileException)
-            e.printStackTrace();
-        else if (e instanceof ClassNotFoundException) {
-            System.err.println("Ошибка при передачи сообщений: " + e.getMessage());
-        } else if (e instanceof SocketException) {
-            System.err.println("Соединение разорвано: " + e.getMessage());
-        } else {
-            System.err.println("Неопознанная ошибка: " + e.getMessage());
-        }
-    }
 
-    private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst) {
+    private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst) throws IOException {
+
         myFilesSrc.sort(Comparator.comparing(MyFile::getFile));
         myFilesDst.sort(Comparator.comparing(MyFile::getFile));
         for (int i = 0; i < myFilesSrc.size(); i++) {
@@ -151,7 +120,9 @@ public class Core {
 
                 } else { //если директории с таким именем нет
                     //отправить информацию о необходимости создать дирректорию
+
                     sendMessage(new Message(MessageType.DIR, currentSrcFile), "...Send dir " + currentSrcFile);
+
 
                     //добавляем директорию в список файлов на сервере
                     MyFile mf = MyFile.copyDir(currentSrcFile);
@@ -202,60 +173,43 @@ public class Core {
         }
 
         //Запрашиваем с сервера недостающие файлы /создаем папки
-        for (int i = 0; i < myFilesDst.size(); i++) {
-            MyFile myCurrentDst = myFilesDst.get(i);
+        for (MyFile myCurrentDst : myFilesDst) {
+            if (myCurrentDst.isDirectory()) { // если на сервере есть дирректория, которой нет у клиента рекурсивно синхронизируем все вложения
+                Path newPath = syncPaths.get(0).resolve(myCurrentDst.getFile().toPath());
+                controller.printMessage(". " + newPath + "\n");
+                deleteIfExists(newPath);
+                Files.createDirectory(newPath);
+                controller.printMessage("\t\t Create Dir: " + newPath + "\n");
 
-
-            try {
-                if (myCurrentDst.isDirectory()) { // если на сервере есть дирректория, которой нет у клиента рекурсивно синхронизируем все вложения
-                    Path newPath = syncPaths.get(0).resolve(myCurrentDst.getFile().toPath());
-                    System.out.println(". " + newPath + "\n");
-                    deleteIfExists(newPath);
-                    Files.createDirectory(newPath);
-                    System.out.println("\t\t Create Dir: " + newPath + "\n");
-
-                    MyFile mf = MyFile.copyDir(myCurrentDst);
-                    mf.setChildList(new ArrayList<>());
-                    myFilesSrc.add(mf);
-                    synchronize(myFilesSrc.get(myFilesSrc.indexOf(myCurrentDst)).getChildList(),
-                            myCurrentDst.getChildList()
-                    );
-
-                } else { // запрашиваем файл с сервера, если его не у клиента
-                    sendMessage(
-                            new Message(MessageType.GET, myCurrentDst),
-                            "...Get from server file: " + myCurrentDst
-                    );
-                }
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
+                MyFile mf = MyFile.copyDir(myCurrentDst);
+                mf.setChildList(new ArrayList<>());
+                myFilesSrc.add(mf);
+                synchronize(myFilesSrc.get(myFilesSrc.indexOf(myCurrentDst)).getChildList(),
+                        myCurrentDst.getChildList()
+                );
+            } else { // запрашиваем файл с сервера, если его не у клиента
+                sendMessage(
+                        new Message(MessageType.GET, myCurrentDst),
+                        "...Get from server file: " + myCurrentDst
+                );
             }
-
         }
+
+
     }
 
-    private void sendFileMessage(MyFile currentSrcFile) {
+    private void sendFileMessage(MyFile currentSrcFile) throws IOException {
         Path path = syncPaths.get(0).resolve(currentSrcFile.getPath());
-        try {
-            sendMessage(
-                    new Message(MessageType.FILE, Files.readAllBytes(path), currentSrcFile),
-                    "...Send file " + currentSrcFile
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        sendMessage(
+                new Message(MessageType.FILE, Files.readAllBytes(path), currentSrcFile),
+                "...Send file " + currentSrcFile
+        );
     }
 
     private void deleteIfExists(Path newPath) throws IOException {
-        try {
-            if (Files.exists(newPath)) {
-                System.out.println("delete " + newPath);
-                Files.delete(newPath);
-            }
-        } catch (NoSuchFileException e) {
-            System.err.println("NoSuchFileException: " + e.getMessage());
+        if (Files.exists(newPath)) {
+            controller.printMessage("delete " + newPath);
+            Files.delete(newPath);
         }
     }
 
@@ -271,56 +225,62 @@ public class Core {
         }
     }
 
-//    public void sendMessage(String text) {
-//        try {
-//            os.writeObject(text);
-//        os.flush();
-//    } catch (IOException e) {
-//        e.printStackTrace();
-//    }
-//    }
-
-    public void sendMessage(Message message) {
-        try {
-            os.writeObject(message);
-            os.flush();
-            controller.printMessage("Сообщение " + message.getMessageType() + " отправлено ");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void sendMessage(Message message, String userText) throws IOException {
+        os.writeObject(message);
+        os.flush();
+        controller.printMessage(userText);
     }
 
-    public void sendMessage(Message message, String userText) {
-        try {
-            os.writeObject(message);
-            os.flush();
-            controller.printMessage(userText);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    //TODO https://habrahabr.ru/post/85698/
+    public void sendLogin(String login, String password) throws IOException {
+        Message message = new Message(MessageType.GET_AUTHORIZATION, login, password);
+        os.writeObject(message);
+        os.flush();
     }
 
-
-    public void sendLogin(String login, String password) {
-        try {
-            Message message = new Message(MessageType.GET_AUTHORIZATION, login, password);
-            os.writeObject(message);
-            os.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void closeWindow() {
-
-        try {
-            socket.close();
-            is.close();
-            os.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public void closeWindow() throws IOException {
+        socket.close();
+        is.close();
+        os.close();
         isWindowOpen = false;
     }
+
+    private void getProperties() {
+        List<String> settings = null;
+        try {
+            settings = Files.readAllLines(SETTINGS_FILE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        syncPaths = new ArrayList<>();
+        for (int i = 0; i < (settings != null ? settings.size() : 0); i++) {
+            switch (settings.get(i)) {
+                case "[Sync folders]":
+                    i++;
+                    while (i < settings.size() &&
+                            (settings.get(i).startsWith("\\\\") || settings.get(i).substring(1).startsWith(":\\"))) {
+                        syncPaths.add(Paths.get(settings.get(i++)));
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void printException(Exception e) {
+        if (e instanceof NoSuchFileException) {
+            controller.printMessage("Файл не найден " + e.getMessage());
+        } else if (e instanceof ClassNotFoundException) {
+            controller.printMessage("Ошибка при передачи сообщений: " + e.getMessage());
+        } else if (e instanceof SocketException) {
+            controller.printMessage("Соединение разорвано: " + e.getMessage());
+        } else if (e instanceof IOException) {
+            controller.printMessage(e.getMessage());
+        } else {
+            controller.printMessage("Неопознанная ошибка: " + e.getMessage());
+        }
+    }
+
 }
