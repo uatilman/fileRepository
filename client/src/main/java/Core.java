@@ -1,4 +1,3 @@
-import com.sun.istack.internal.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,15 +13,16 @@ import java.util.Comparator;
 import java.util.List;
 
 public class Core {
+    private boolean isOpen;
     private ObjectOutputStream os;
     private ObjectInputStream is;
     private Controller controller;
     private boolean isAuthorization;
-    //    private Thread userThread;
+    private Thread userThread;
     private List<File> files;
     private final static Path SETTINGS_FILE = Paths.get("properties.txt");
     private List<Path> syncPaths;
-    Socket socket = null;
+    private Socket socket = null;
 
 
     public void getProperties() {
@@ -59,14 +59,19 @@ public class Core {
         }
     }
 
+    public Thread getUserThread() {
+        return userThread;
+    }
 
     public Core(Controller controller) {
         this.controller = controller;
         isAuthorization = false;
         controller.setCore(this);
 
-        try {
+        //todo
+        isOpen = true;
 
+        try {
             socket = new Socket("localhost", 8189);
             os = new ObjectOutputStream(socket.getOutputStream());
             is = new ObjectInputStream(socket.getInputStream());
@@ -74,35 +79,42 @@ public class Core {
             e.printStackTrace();
         }
 
-        Thread userThread = new Thread(() -> {
+        this.userThread = new Thread(() -> {
+            while (true){
+                try {
+                    if (socket.isClosed()) {
+                        socket = new Socket("localhost", 8189);
+                        os = new ObjectOutputStream(socket.getOutputStream());
+                        is = new ObjectInputStream(socket.getInputStream());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            System.out.println(this.getClass());
             controller.printMessage("Авторизируйтесь");
             try {
 
                 while (!isAuthorization) {
                     Message message = (Message) is.readObject();
                     if (message.getMessageType() == MessageType.AUTHORIZATION_SUCCESSFUL) {
-                        setAuthorization();
+                        setAuthorization(true);
                     } else {
                         controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
                     }
                 }
-
-
                 while (true) {
                     Message message = (Message) is.readObject();
                     switch (message.getMessageType()) {
                         case FILE_LIST:
-                            List<MyFile> serverFilesList = message.getFiles();
-                            List<MyFile> clientFilesList = MyFile.getTree(syncPaths.get(0), syncPaths.get(0));
-                            new Thread(() -> synchronize(clientFilesList, serverFilesList)).start();
+                            new Thread(() -> synchronize(
+                                    MyFile.getTree(syncPaths.get(0), syncPaths.get(0)),
+                                    message.getFiles())
+                            ).start();
                             break;
                         case FILE:
                             Path newPath = syncPaths.get(0).resolve(message.getMyFile().getFile().toString());
                             if (Files.exists(newPath)) Files.delete(newPath);
-                            Files.write(
-                                    newPath,
-                                    message.getDate(),
-                                    StandardOpenOption.CREATE_NEW);
+                            Files.write(newPath, message.getDate(), StandardOpenOption.CREATE_NEW);
                             Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
                         default:
                             break;
@@ -115,14 +127,23 @@ public class Core {
                 try {
                     is.close();
                     os.close();
+                    socket.close();
+                    setAuthorization(false);
                     //TODO доделать до полного возобновления + при старте поставить слушатель на ожидание включения сервера, если Соединение разорвано: из за закрытия окна, клоуз тут неприменять
-//                        new Core(controller);
-
                 } catch (IOException e) {
                 }
             }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+            }
+
+        }
+
+
         });
         userThread.start();
+//        userThread.start();
     }
 
     private void printException(Exception e) {
@@ -143,8 +164,7 @@ public class Core {
         for (MyFile mf : myFilesDst) {
             System.out.println("synchronize in " + mf);
         }
-//        if (myFilesSrc.isEmpty()) return;
-        System.err.println();
+
         for (int i = 0; i < myFilesSrc.size(); i++) {
             MyFile currentSrcFile = myFilesSrc.get(i);
             if (currentSrcFile.isDirectory()) { //если дирректория
@@ -157,24 +177,11 @@ public class Core {
                     i--;
 
                 } else { //если директории с таким именем нет
-
                     //отправить информацию о необходимости создать дирректорию
-                    System.out.println("sending...." + currentSrcFile + "isDir? " + currentSrcFile.isDirectory());
-
-                    try {
-                        Message message = new Message(
-                                MessageType.DIR,
-                                currentSrcFile.getFile().getName()
-
-                        );
-                        os.writeObject(message);
-                        os.flush();
-
-                    } catch (IOException e) {
-                    }
+                    sendMessage(new Message(MessageType.DIR, currentSrcFile), "...Send dir " + currentSrcFile);
 
                     //добавляем директорию в список файлов на сервере
-                    MyFile mf = MyFile.copy(currentSrcFile);
+                    MyFile mf = MyFile.copyDir(currentSrcFile);
                     mf.setChildList(new ArrayList<>());
                     myFilesDst.add(mf);
                     synchronize(currentSrcFile.getChildList(), myFilesDst.get(myFilesDst.indexOf(currentSrcFile)).getChildList());
@@ -187,20 +194,7 @@ public class Core {
                     MyFile currentDstFile = myFilesDst.get(myFilesDst.indexOf(currentSrcFile));
 
                     if (currentSrcFile.getLastModifiedTime() > currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения больше
-                        Path path = syncPaths.get(0).resolve(currentSrcFile.getPath());
-
-                        try {
-                            Message message = new Message(
-                                    MessageType.FILE,
-                                    currentSrcFile.getFile().getName(),
-                                    Files.readAllBytes(path),
-                                    currentSrcFile
-                            );
-                            os.writeObject(message);
-                            os.flush();
-
-                        } catch (IOException e) {
-                        }
+                        sendFileMessage(currentSrcFile);
 
                         myFilesSrc.remove(currentSrcFile);
                         myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));
@@ -208,17 +202,11 @@ public class Core {
 
                     } else if (currentSrcFile.getLastModifiedTime() < currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения меньше
                         //просим файл с сервера
-                        try {
-                            Message message = new Message(
-                                    MessageType.GET,
-                                    currentSrcFile
-                            );
-                            controller.printMessage("...Get from server file: " + currentSrcFile.getFile().toPath());
+                        sendMessage(
+                                new Message(MessageType.GET, currentSrcFile),
+                                "...Get from server file: " + currentSrcFile
+                        );
 
-                            os.writeObject(message);
-                            os.flush();
-                        } catch (IOException e) {
-                        }
                         myFilesSrc.remove(currentSrcFile);
                         myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));
                         i--;
@@ -230,20 +218,7 @@ public class Core {
 
 
                 } else { // если на сервере файла нет
-                    Path path = syncPaths.get(0).resolve(currentSrcFile.getPath());
-
-                    try {
-                        Message message = new Message(
-                                MessageType.FILE,
-                                currentSrcFile.getFile().getName(),
-                                Files.readAllBytes(path),
-                                currentSrcFile
-                        );
-                        os.writeObject(message);
-                        os.flush();
-                    } catch (IOException e) {
-                    }
-
+                    sendFileMessage(currentSrcFile);
                     myFilesSrc.remove(currentSrcFile);
                     i--;
                     // TODO в текущей версии подразумевается, что в с сервера нельза удалить файл кроме как через единственный клиент,
@@ -255,7 +230,7 @@ public class Core {
 
         System.out.println("Client");
         for (MyFile mf : myFilesSrc) {
-            System.out.println("server....."  + mf);
+            System.out.println("server....." + mf);
         }
 
         System.out.println("Server");
@@ -269,30 +244,25 @@ public class Core {
 
 
             try {
-                if (myCurrentDst.isDirectory()) {
+                if (myCurrentDst.isDirectory()) { // если на сервере есть дирректория, которой нет у клиента рекурсивно синхронизируем все вложения
                     Path newPath = syncPaths.get(0).resolve(myCurrentDst.getFile().toPath());
                     System.out.println(". " + newPath + "\n");
                     deleteIfExists(newPath);
                     Files.createDirectory(newPath);
                     System.out.println("\t\t Create Dir: " + newPath + "\n");
-                    //TODO а тут надо выдернуть из дирректории на сервере лист новых файлов, и рекурсивно их запросить
 
-                    MyFile mf = MyFile.copy(myCurrentDst);
+                    MyFile mf = MyFile.copyDir(myCurrentDst);
                     mf.setChildList(new ArrayList<>());
                     myFilesSrc.add(mf);
                     synchronize(myFilesSrc.get(myFilesSrc.indexOf(myCurrentDst)).getChildList(),
                             myCurrentDst.getChildList()
                     );
 
-                } else {
-                    Message message = new Message(
-                            MessageType.GET,
-                            myCurrentDst
+                } else { // запрашиваем файл с сервера, если его не у клиента
+                    sendMessage(
+                            new Message(MessageType.GET, myCurrentDst),
+                            "...Get from server file: " + myCurrentDst
                     );
-                    System.out.println("...Get from server file: " + myCurrentDst.getFile().getName());
-
-                    os.writeObject(message);
-                    os.flush();
                 }
 
 
@@ -300,6 +270,18 @@ public class Core {
                 e.printStackTrace();
             }
 
+        }
+    }
+
+    private void sendFileMessage(MyFile currentSrcFile) {
+        Path path = syncPaths.get(0).resolve(currentSrcFile.getPath());
+        try {
+            sendMessage(
+                    new Message(MessageType.FILE, Files.readAllBytes(path), currentSrcFile),
+                    "...Send file " + currentSrcFile
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -314,34 +296,47 @@ public class Core {
         }
     }
 
-    private void setAuthorization() {
-        isAuthorization = true;
-        controller.setAuthorization(true);
-        controller.printMessage("login ok");
-        this.getProperties();
-
-        controller.printMessage("Выбраны папки для синхронизации: ");
-
-    }
-
-    public void sendMessage(String text) {
-        try {
-            os.writeObject(text);
-            os.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void setAuthorization(boolean isAuthorization) {
+        this.isAuthorization = isAuthorization;
+        controller.setAuthorization(isAuthorization);
+        if (isAuthorization) {
+            controller.printMessage("login ok");
+            this.getProperties();
+            controller.printMessage("Выбраны папки для синхронизации: ");
+        } else {
+            controller.printMessage("Соединение потеряно");
         }
     }
+
+//    public void sendMessage(String text) {
+//        try {
+//            os.writeObject(text);
+//        os.flush();
+//    } catch (IOException e) {
+//        e.printStackTrace();
+//    }
+//    }
 
     public void sendMessage(Message message) {
         try {
             os.writeObject(message);
             os.flush();
-            controller.printMessage("Файл " + message.getFileName() + " отправлен ");
+            controller.printMessage("Сообщение " + message.getMessageType() + " отправлено ");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    public void sendMessage(Message message, String userText) {
+        try {
+            os.writeObject(message);
+            os.flush();
+            controller.printMessage(userText);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     public void sendLogin(String login, String password) {
         try {
@@ -363,5 +358,6 @@ public class Core {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        isOpen = false;
     }
 }

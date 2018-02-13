@@ -45,7 +45,6 @@ public class FileThread implements Runnable {
             sendFileListMessage(oos);
 
             while (true) {
-
                 Message message;
                 message = (Message) ois.readObject();
                 serverStart.printMessage("\t Incoming message " + message.getMessageType());
@@ -58,7 +57,7 @@ public class FileThread implements Runnable {
                         sendFileListMessage(oos);
                         serverStart.printMessage("\t\t Files list send\n");
                     case FILE: {
-                        Path newPath = root.resolve(message.getFileName());
+                        Path newPath = root.resolve(message.getMyFile().getFile().toPath());
                         serverStart.printMessage(". " + newPath + "\n");
 
                         deleteIfExists(newPath);
@@ -71,7 +70,7 @@ public class FileThread implements Runnable {
                     }
                     break;
                     case DIR: {
-                        Path newPath = root.resolve(message.getFileName());
+                        Path newPath = root.resolve(message.getMyFile().getPath());
                         serverStart.printMessage(". " + newPath + "\n");
                         deleteIfExists(newPath);
                         Files.createDirectory(newPath);
@@ -80,15 +79,14 @@ public class FileThread implements Runnable {
                     break;
                     case GET: {
                         MyFile needMyFile = message.getMyFile();
-                        serverStart.printMessage(". " + needMyFile.getFile().toPath() + "\n");
-                        Thread.sleep(1000);
+                        serverStart.printMessage(". " + message.getMyFile().getFile().toPath() + "\n");
 
-                        Path needPath = root.resolve(needMyFile.getFile().toPath());
+
+                        Path needPath = root.resolve(message.getMyFile().getFile().toPath());
                         needMyFile.setLastModifiedTime(Files.getLastModifiedTime(needPath, LinkOption.NOFOLLOW_LINKS).toMillis());
 
                         Message newMessage = new Message(
                                 MessageType.FILE,
-                                needMyFile.getFile().getName(),
                                 Files.readAllBytes(needPath),
                                 needMyFile
                         );
@@ -107,14 +105,11 @@ public class FileThread implements Runnable {
         } catch (IOException | ClassNotFoundException | SQLException e) {
             String s;
             if (e instanceof EOFException) {
-                s = "ObjectInputStream Exception. Connection reset.";
+                s = "User " + userName + " disconnect";
             } else {
                 s = e.getMessage();
             }
             serverStart.printErrMessage(s);
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
 

@@ -6,10 +6,10 @@ import java.nio.file.attribute.FileTime;
 import java.util.*;
 
 public class MyFile implements Serializable {
-    private long lastModifiedTime;
     private transient Path path;
-    private List<MyFile> childList;
     private File file;
+    private long lastModifiedTime;
+    private List<MyFile> childList;
     private boolean isDirectory;
 
     public MyFile(Path path, Path root) throws IOException {
@@ -20,12 +20,21 @@ public class MyFile implements Serializable {
         this.file = this.path.toFile();
         this.childList = new ArrayList<>();
     }
-    public MyFile(long lastModifiedTime, Path path, List<MyFile> childList, File file, boolean isDirectory) {
+
+    public MyFile(long lastModifiedTime, Path path, List<MyFile> childList) {
         this.lastModifiedTime = lastModifiedTime;
         this.path = path;
+        this.file = this.path.toFile();
         this.childList = childList;
+        this.isDirectory = true;
+    }
+
+    private MyFile(long lastModifiedTime, File file, List<MyFile> childList) {
+        this.lastModifiedTime = lastModifiedTime;
+        this.path = file.toPath();
         this.file = file;
-        this.isDirectory = isDirectory;
+        this.childList = childList;
+        this.isDirectory = true;
     }
 
     public long getLastModifiedTime() {
@@ -80,37 +89,34 @@ public class MyFile implements Serializable {
         this.file = file;
     }
 
-    public static List<MyFile> removeAll(MyFile myFile, Path root) throws Exception {
-        List<MyFile> myFiles = MyFile.getTree(root.resolve(myFile.getPath()), root);
-        List<MyFile> removeList = new ArrayList<>();
-        ListIterator<MyFile> iterator = myFiles.listIterator();
+//    public static List<MyFile> removeAll(MyFile myFile, Path root) throws Exception {
+//        List<MyFile> myFiles = MyFile.getTree(root.resolve(myFile.getPath()), root);
+//        List<MyFile> removeList = new ArrayList<>();
+//        ListIterator<MyFile> iterator = myFiles.listIterator();
+//
+//        while (iterator.hasNext() && !myFiles.isEmpty()) {
+//            MyFile temp = iterator.next();
+//            try {
+//                Files.delete(temp.getPath());
+//                temp.setPath(root.toAbsolutePath().relativize((temp.getPath().toAbsolutePath())));
+//                removeList.add(temp);//задать относительный путь
+//                iterator.remove();
+//            } catch (DirectoryNotEmptyException e) {
+//                continue;
+//            }
+//            if (!iterator.hasNext()) iterator = myFiles.listIterator();
+//        }
+//        removeList.add(myFile);
+//        Files.delete(root.resolve(myFile.getPath()));
+//        return removeList;
+//    }
 
-        while (iterator.hasNext() && !myFiles.isEmpty()) {
-            MyFile temp = iterator.next();
-            try {
-                Files.delete(temp.getPath());
-                temp.setPath(root.toAbsolutePath().relativize((temp.getPath().toAbsolutePath())));
-                removeList.add(temp);//задать относительный путь
-                iterator.remove();
-            } catch (DirectoryNotEmptyException e) {
-                continue;
-            }
-            if (!iterator.hasNext()) iterator = myFiles.listIterator();
-        }
-        removeList.add(myFile);
-        Files.delete(root.resolve(myFile.getPath()));
-        return removeList;
-    }
-
-    public static MyFile copy(MyFile src) {
+    public static MyFile copyDir(MyFile src) {
         List<MyFile> childList = new ArrayList<>(src.childList);
-//        Collections.copy(childList, src.childList);
         return new MyFile(
                 src.lastModifiedTime,
-                src.path,
-                childList,
-                new File(src.file.getPath()),
-                src.isDirectory
+                src.file,
+                childList
         );
     }
 

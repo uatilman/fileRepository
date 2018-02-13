@@ -17,9 +17,10 @@ public class StartClient extends Application {
         Controller controller = loader.getController();
         Core core = new Core(controller);
 
-        primaryStage.setTitle("Hello World");
+        primaryStage.setTitle("File repository");
         primaryStage.setScene(new Scene(root, 500, 300));
         primaryStage.show();
+//        core.getUserThread().start();
         primaryStage.setOnCloseRequest(event -> controller.closingWindow());
 
     }

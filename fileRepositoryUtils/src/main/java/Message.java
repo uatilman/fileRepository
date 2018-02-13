@@ -7,11 +7,13 @@ import java.util.List;
 public class Message implements Serializable {
 
     private MessageType messageType;
-    private File file;
+//    private File file;
+//    private String fileName;
+
     private String login;
     private String password;
     private List<MyFile> files;
-    private String fileName;
+
     private byte[] date;
     private MyFile myFile;
 
@@ -23,47 +25,50 @@ public class Message implements Serializable {
     public String toString() {
         return "Message{" +
                 "messageType=" + messageType +
-                ", file=" + file +
+//                ", file=" + file +
                 ", login='" + login + '\'' +
                 ", password='" + password + '\'' +
                 ", files=" + files +
-                ", fileName='" + fileName + '\'' +
+//                ", fileName='" + fileName + '\'' +
                 ", date=" + Arrays.toString(date) +
                 '}';
     }
 
-    public Message(MessageType messageType, String fileName) {
-        this.messageType = messageType;
-        this.fileName = fileName;
-    }
+//    public Message(MessageType messageType, String fileName) {
+//        this.messageType = messageType;
+//        this.fileName = fileName;
+//    }
 
     public Message(MessageType messageType) {
         this.messageType = messageType;
+
     }
 
     public List<MyFile> getFiles() {
         return files;
     }
 
-    public String getFileName() {
-        return fileName;
-    }
+//    public String getFileName() {
+//        return fileName;
+//    }
 
     public byte[] getDate() {
         return date;
     }
 
-    public Message(MessageType messageType, String fileName, byte[] date, MyFile myFile) {
+
+
+    public Message(MessageType messageType,  byte[] date, MyFile myFile) { // - String fileName,
         this.myFile = myFile;
         this.messageType = messageType;
-        this.fileName = fileName;
+//        this.fileName = fileName;
         this.date = date;
     }
 
     public Message(MessageType messageType, MyFile myFile) {
         this.myFile = myFile;
         this.messageType = messageType;
-        this.fileName = fileName;
+//        this.fileName = fileName;
         this.date = date;
     }
 
@@ -86,17 +91,17 @@ public class Message implements Serializable {
         this.messageType = messageType;
     }
 
-    public File getFile() {
-        return file;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
-    }
-
-    public void setPath(File file) {
-        this.file = file;
-    }
+//    public File getFile() {
+//        return file;
+//    }
+//
+//    public void setFile(File file) {
+//        this.file = file;
+//    }
+//
+//    public void setPath(File file) {
+//        this.file = file;
+//    }
 
     public String getLogin() {
         return login;
