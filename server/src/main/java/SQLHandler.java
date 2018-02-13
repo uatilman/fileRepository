@@ -1,7 +1,9 @@
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SQLHandler {
-    private Connection connection;
+    private static Connection connection;
 
 //    public static void main(String[] args) throws SQLException, ClassNotFoundException {
 //        SQLHandler sqlHandler = new SQLHandler();
@@ -12,6 +14,18 @@ public class SQLHandler {
 //        sqlHandler.disconnect();
 //
 //    }
+
+    public static List<String> getUsers() throws SQLException {
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT login FROM users");
+        List<String> userList = new ArrayList<>();
+        while (rs.next()) {
+            userList.add(rs.getString(1));
+        }
+        rs.close();
+        statement.close();
+        return userList;
+    }
 
     public String getHash(String login) throws SQLException {
         PreparedStatement ps = connection.prepareStatement("SELECT password_hash  FROM users WHERE login = ?");
@@ -47,11 +61,11 @@ public class SQLHandler {
 
     }
 
-    public void connect() throws ClassNotFoundException, SQLException {
+    public static void connect() throws ClassNotFoundException, SQLException {
         connection = DriverManager.getConnection("jdbc:sqlite:server/fileRepository.db");
     }
 
-    public void disconnect() throws ClassNotFoundException, SQLException {
+    public static void disconnect() throws ClassNotFoundException, SQLException {
         connection.close();
     }
 
