@@ -1,19 +1,14 @@
-
-
-
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.*;
-
 import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
 
-import java.util.List;
+
 
 public class FileThread implements Runnable {
     private Socket socket;
-    private List<File> files;
     private String userName;
     private final Path SERVER_ADDRESS = Paths.get("C:\\Users\\uatil\\Desktop\\serverFiles");
     private String rootUserDir;
@@ -22,14 +17,12 @@ public class FileThread implements Runnable {
 
     public FileThread(Socket socket, ServerStart serverStart) {
         this.socket = socket;
-        this.files = files;
         this.serverStart = serverStart;
 
     }
 
     @Override
     public void run() {
-        System.out.println("run");
         serverStart.printMessage("\tclient connect\n");
         InputStream in;
         OutputStream os;
@@ -51,7 +44,7 @@ public class FileThread implements Runnable {
 
                 switch (message.getMessageType()) {
                     case COMMAND_NOT_RECOGNIZED:
-                        //TODO add command id - long connection time - increment - toString - server or client
+                        //TODO add command id - long connection time - increment - toString & server or client
                         break;
                     case FILE_LIST:
                         sendFileListMessage(oos);
@@ -116,11 +109,11 @@ public class FileThread implements Runnable {
     private void deleteIfExists(Path newPath) throws IOException {
         try {
             if (Files.exists(newPath)) {
-                System.out.println("delete " + newPath);
+                serverStart.printMessage("delete " + newPath);
                 Files.delete(newPath);
             }
         } catch (NoSuchFileException e) {
-            System.err.println("NoSuchFileException: " + e.getMessage());
+            serverStart.printErrMessage("NoSuchFileException: " + e.getMessage());
         }
     }
 

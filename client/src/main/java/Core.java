@@ -159,8 +159,6 @@ public class Core {
                         myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));
                         i--;
                     }
-
-
                 } else { // если на сервере файла нет
                     sendFileMessage(currentSrcFile);
                     myFilesSrc.remove(currentSrcFile);
@@ -194,8 +192,6 @@ public class Core {
                 );
             }
         }
-
-
     }
 
     private void sendFileMessage(MyFile currentSrcFile) throws IOException {
