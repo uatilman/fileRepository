@@ -47,7 +47,8 @@ public class Core {
                         is = new ObjectInputStream(socket.getInputStream());
                     }
                 } catch (IOException e) {
-printException(e);                }
+                    printException(e);
+                }
                 controller.printMessage("Авторизируйтесь");
 
                 try {
@@ -101,11 +102,6 @@ printException(e);                }
 
     }
 
-    public void start() {
-
-    }
-
-
     private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst) throws IOException {
         myFilesSrc.sort(Comparator.comparing(MyFile::getFile));
         myFilesDst.sort(Comparator.comparing(MyFile::getFile));
@@ -149,7 +145,6 @@ printException(e);                }
                 } else { // если на сервере файла нет
                     sendFileMessage(currentSrcFile);
                     removeList.add(currentSrcFile);
-
 
                     // TODO в текущей версии подразумевается, что в с сервера нельза удалить файл кроме как через единственный клиент,
                     // TODO в противном случае, на сервере нужно вести журнал удалений, и проверять long удаленного файла
@@ -274,7 +269,6 @@ printException(e);                }
     }
 
     private void printException(Exception e) {
-        e.printStackTrace();
         if (e instanceof NoSuchFileException) {
             controller.printMessage("Файл не найден " + e.getMessage());
         } else if (e instanceof ClassNotFoundException) {

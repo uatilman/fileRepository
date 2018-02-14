@@ -1,14 +1,13 @@
+import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class Controller {
     @FXML
@@ -28,6 +27,11 @@ public class Controller {
     @FXML
     private HBox authorizationField;
     private boolean isAuthorization;
+    StartClient app;
+
+    public void setApp(StartClient app) {
+        this.app = app;
+    }
 
     public void setCore(Core core) {
         this.core = core;
@@ -36,7 +40,7 @@ public class Controller {
     public void getFilesList() {
         FileChooser fileChooser = new FileChooser();//Класс работы с диалогом выборки и сохранения
         fileChooser.setTitle("Выбирите папку для синхронизации");//Заголовок диалога
-        core.setFiles(fileChooser.showOpenMultipleDialog(StartClient.stage));
+        core.setFiles(fileChooser.showOpenMultipleDialog(app.getPrimaryStage()));
     }
 
     public void clearTextArea() {
@@ -66,5 +70,23 @@ public class Controller {
 
     public void closingWindow() {
         core.closeWindow();
+    }
+
+    public void registration(ActionEvent actionEvent) {
+
+        app.showPersonEditDialog();
+      /*  TextInputDialog dialog = new TextInputDialog("walter");
+        dialog.setTitle("Text Input Dialog");
+        dialog.setHeaderText("Look, a Text Input Dialog");
+        dialog.setContentText("Please enter your name:");
+
+// Traditional way to get the response value.
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            System.out.println("Your name: " + result.get());
+        }
+
+// The Java 8 way to get the response value (with lambda expression).
+//        result.ifPresent(name -> System.out.println("Your name: " + name));*/
     }
 }

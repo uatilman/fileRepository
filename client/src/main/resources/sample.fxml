@@ -20,6 +20,7 @@
                pas2
                 </PasswordField>
             <Button fx:id="buttonLogin" minWidth="-Infinity" onAction="#sendLoginPassword" prefWidth="80.0" text="Войти" />
+            <Button fx:id="buttonRegistration" minWidth="-Infinity" onAction="#registration" prefWidth="80.0" text="Регистрация" />
 
         </HBox>
     </top>
