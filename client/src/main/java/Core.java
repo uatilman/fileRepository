@@ -47,8 +47,7 @@ public class Core {
                         is = new ObjectInputStream(socket.getInputStream());
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
-                }
+printException(e);                }
                 controller.printMessage("Авторизируйтесь");
 
                 try {
@@ -65,18 +64,14 @@ public class Core {
                         Message message = (Message) is.readObject();
                         switch (message.getMessageType()) {
                             case FILE_LIST:
-                                new Thread(() -> {
-                                    try {
+                                try {
+                                    synchronize(
+                                            MyFile.getTree(syncPaths.get(0), syncPaths.get(0)),
+                                            message.getFiles());
 
-                                        synchronize(
-                                                MyFile.getTree(syncPaths.get(0), syncPaths.get(0)),
-                                                message.getFiles());
-
-                                    } catch (IOException e) {
-                                        printException(e);
-                                    }
+                                } catch (IOException e) {
+                                    printException(e);
                                 }
-                                ).start();
                                 break;
                             case FILE:
                                 Path newPath = syncPaths.get(0).resolve(message.getMyFile().getFile().toString());
@@ -102,35 +97,31 @@ public class Core {
                 }
             }
         }).start();
+
+
+    }
+
+    public void start() {
+
     }
 
 
     private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst) throws IOException {
-
         myFilesSrc.sort(Comparator.comparing(MyFile::getFile));
         myFilesDst.sort(Comparator.comparing(MyFile::getFile));
+
+        List<MyFile> removeList = new ArrayList<>();
         for (int i = 0; i < myFilesSrc.size(); i++) {
             MyFile currentSrcFile = myFilesSrc.get(i);
             if (currentSrcFile.isDirectory()) { //если дирректория
                 if (myFilesDst.contains(currentSrcFile)) { // если на сервере есть директория с такимже именем
-
                     synchronize(currentSrcFile.getChildList(), myFilesDst.get(myFilesDst.indexOf(currentSrcFile)).getChildList());
-                    //удаляем файлы из списк синхронизации
-                    myFilesSrc.remove(currentSrcFile);
-                    myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));
-                    i--;
-
+                    removeList.add(currentSrcFile);
                 } else { //если директории с таким именем нет
                     //отправить информацию о необходимости создать дирректорию
-
                     sendMessage(new Message(MessageType.DIR, currentSrcFile), "...Send dir " + currentSrcFile);
-
-
-                    //добавляем директорию в список файлов на сервере
-                    MyFile mf = MyFile.copyDir(currentSrcFile);
-                    mf.setChildList(new ArrayList<>());
-                    myFilesDst.add(mf);
-                    synchronize(currentSrcFile.getChildList(), myFilesDst.get(myFilesDst.indexOf(currentSrcFile)).getChildList());
+                    //синхронизируем директорию
+                    synchronize(currentSrcFile.getChildList(), new ArrayList<>());
                 }
 
             } else { //если файл
@@ -140,11 +131,9 @@ public class Core {
                     MyFile currentDstFile = myFilesDst.get(myFilesDst.indexOf(currentSrcFile));
 
                     if (currentSrcFile.getLastModifiedTime() > currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения больше
-                        sendFileMessage(currentSrcFile);
 
-                        myFilesSrc.remove(currentSrcFile);
-                        myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));
-                        i--;
+                        sendFileMessage(currentSrcFile);
+                        removeList.add(currentSrcFile);
 
                     } else if (currentSrcFile.getLastModifiedTime() < currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения меньше
                         //просим файл с сервера
@@ -152,19 +141,16 @@ public class Core {
                                 new Message(MessageType.GET, currentSrcFile),
                                 "...Get from server file: " + currentSrcFile
                         );
+                        removeList.add(currentSrcFile);
 
-                        myFilesSrc.remove(currentSrcFile);
-                        myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));
-                        i--;
-                    } else {
-                        myFilesSrc.remove(currentSrcFile);
-                        myFilesDst.remove(myFilesDst.get(myFilesDst.indexOf(currentSrcFile)));
-                        i--;
+                    } else { // файлы идентичны
+                        removeList.add(currentSrcFile);
                     }
                 } else { // если на сервере файла нет
                     sendFileMessage(currentSrcFile);
-                    myFilesSrc.remove(currentSrcFile);
-                    i--;
+                    removeList.add(currentSrcFile);
+
+
                     // TODO в текущей версии подразумевается, что в с сервера нельза удалить файл кроме как через единственный клиент,
                     // TODO в противном случае, на сервере нужно вести журнал удалений, и проверять long удаленного файла
                 }
@@ -172,14 +158,20 @@ public class Core {
 
         }
 
+        myFilesSrc.removeAll(removeList);
+        myFilesDst.removeAll(removeList);
+
         //Запрашиваем с сервера недостающие файлы /создаем папки
         for (MyFile myCurrentDst : myFilesDst) {
             if (myCurrentDst.isDirectory()) { // если на сервере есть дирректория, которой нет у клиента рекурсивно синхронизируем все вложения
                 Path newPath = syncPaths.get(0).resolve(myCurrentDst.getFile().toPath());
-                controller.printMessage(". " + newPath + "\n");
+                controller.printMessage(". " + newPath);
+
                 deleteIfExists(newPath);
                 Files.createDirectory(newPath);
-                controller.printMessage("\t\t Create Dir: " + newPath + "\n");
+                controller.printMessage("Create Dir: " + newPath);
+                Files.setLastModifiedTime(newPath, FileTime.fromMillis(myCurrentDst.getLastModifiedTime()));
+
 
                 MyFile mf = MyFile.copyDir(myCurrentDst);
                 mf.setChildList(new ArrayList<>());
@@ -282,6 +274,7 @@ public class Core {
     }
 
     private void printException(Exception e) {
+        e.printStackTrace();
         if (e instanceof NoSuchFileException) {
             controller.printMessage("Файл не найден " + e.getMessage());
         } else if (e instanceof ClassNotFoundException) {
@@ -292,6 +285,7 @@ public class Core {
             controller.printMessage(e.getMessage());
         } else {
             controller.printMessage("Неопознанная ошибка: " + e.getMessage());
+
         }
     }
 

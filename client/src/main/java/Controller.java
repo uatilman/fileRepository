@@ -1,3 +1,4 @@
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -47,7 +48,9 @@ public class Controller {
 //    }
 
     public void printMessage(String text) {
-        textArea.appendText(text + "\n");
+        Platform.runLater(() -> textArea.appendText(text + "\n"));
+//        if (text != null)
+
     }
 
     public void sendLoginPassword(ActionEvent actionEvent) throws IOException {

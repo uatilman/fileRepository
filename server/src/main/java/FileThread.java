@@ -10,7 +10,7 @@ import java.sql.SQLException;
 public class FileThread implements Runnable {
     private Socket socket;
     private String userName;
-    private final Path SERVER_ADDRESS = Paths.get("C:\\Users\\uatil\\Desktop\\serverFiles");
+    private final Path SERVER_ADDRESS = Paths.get("C:\\Users\\usr-mbk00066\\IdeaProjects\\fileRepository\\serverFiles");
     private String rootUserDir;
     private ServerStart serverStart;
     private Path root;
@@ -63,7 +63,8 @@ public class FileThread implements Runnable {
                     }
                     break;
                     case DIR: {
-                        Path newPath = root.resolve(message.getMyFile().getPath());
+                        System.out.println(root);
+                        Path newPath = root.resolve(message.getMyFile().getFile().toPath());
                         serverStart.printMessage(". " + newPath + "\n");
                         deleteIfExists(newPath);
                         Files.createDirectory(newPath);

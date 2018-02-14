@@ -14,15 +14,15 @@ public class StartClient extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/sample.fxml"));
         Parent root = loader.load();
 
+
         Controller controller = loader.getController();
         Core core = new Core(controller);
 
         primaryStage.setTitle("File repository");
         primaryStage.setScene(new Scene(root, 500, 300));
         primaryStage.show();
-//        core.getUserThread().start();
-        primaryStage.setOnCloseRequest(event -> controller.closingWindow());
 
+        primaryStage.setOnCloseRequest(event -> controller.closingWindow());
     }
 
 
@@ -30,5 +30,8 @@ public class StartClient extends Application {
 
 
         launch(args);
+
+
+
     }
 }
