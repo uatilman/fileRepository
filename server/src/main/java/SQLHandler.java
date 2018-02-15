@@ -1,3 +1,4 @@
+import javax.xml.bind.DatatypeConverter;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ public class SQLHandler {
         return userList;
     }
 
-    public String getHash(String login) throws SQLException {
+    public static String getHash(String login) throws SQLException {
         PreparedStatement ps = connection.prepareStatement("SELECT password_hash  FROM users WHERE login = ?");
         ps.setString(1, login);
         ResultSet rs = ps.executeQuery();
@@ -36,7 +37,7 @@ public class SQLHandler {
         return hash;
     }
 
-    public String getSalt(String login) throws SQLException {
+    public static String getSalt(String login) throws SQLException {
         PreparedStatement ps = connection.prepareStatement("SELECT salt  FROM users WHERE login = ?");
 
         ps.setString(1, login);
@@ -44,6 +45,14 @@ public class SQLHandler {
         String salt = rs.getString(1);
         ps.close();
         return salt;
+    }
+
+    public static boolean  checkPassword(String login, String password) throws SQLException {
+        return Passwords.isExpectedPassword(
+                password.toCharArray(),
+                DatatypeConverter.parseHexBinary(SQLHandler.getHash(login)),
+                DatatypeConverter.parseHexBinary(SQLHandler.getSalt(password))
+        );
     }
 
     public void insertTestDate() throws SQLException {
