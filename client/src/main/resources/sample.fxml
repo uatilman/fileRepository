@@ -7,6 +7,8 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity"
             minHeight="-Infinity" minWidth="-Infinity"
             xmlns="http://javafx.com/javafx/8.0.121"
@@ -14,27 +16,35 @@
             fx:controller="Controller">
     <top>
         <HBox fx:id="authorizationField" cache="true" BorderPane.alignment="BOTTOM_CENTER">
-                <TextField fx:id="login" prefWidth="150.0" promptText="введите логин" HBox.hgrow="ALWAYS">user2
-                </TextField>
-                <PasswordField fx:id="password" prefWidth="150.0" onAction="#sendLoginPassword" promptText="введите пароль" HBox.hgrow="ALWAYS">
-               pas2
-                </PasswordField>
-            <Button fx:id="buttonLogin" minWidth="-Infinity" onAction="#sendLoginPassword" prefWidth="80.0" text="Войти" />
-            <Button fx:id="buttonRegistration" minWidth="-Infinity" onAction="#registration" prefWidth="80.0" text="Регистрация" />
+            <TextField fx:id="login" prefWidth="150.0" promptText="введите логин" HBox.hgrow="ALWAYS">user2
+            </TextField>
+            <PasswordField fx:id="password" prefWidth="150.0" onAction="#sendLoginPassword" promptText="введите пароль"
+                           HBox.hgrow="ALWAYS">
+                pas2
+            </PasswordField>
+            <Button fx:id="buttonLogin" minWidth="-Infinity" onAction="#sendLoginPassword" prefWidth="80.0"
+                    text="Войти"/>
+            <Button fx:id="buttonRegistration" minWidth="-Infinity" onAction="#registration" prefWidth="80.0"
+                    text="Регистрация"/>
 
         </HBox>
     </top>
-    <center>
-        <TextArea fx:id="textArea" editable="false" >
 
-        </TextArea>
+    <center>
+
+            <ListView fx:id="fileViewsList" VBox.vgrow="ALWAYS">
+
+            </ListView>
+            <!--<TextArea fx:id="textArea" editable="false"></TextArea>-->
+
     </center>
+
     <bottom>
-        <HBox fx:id="bottomField" cache="true" visible="false" BorderPane.alignment="BOTTOM_CENTER">
-                <TextField fx:id="textField" onAction="#getFilesList" promptText="введите сообщение" HBox.hgrow="ALWAYS">
-                </TextField>
-                <Button fx:id="buttonSelect" minWidth="-Infinity" onAction="#getFilesList" prefWidth="80.0" text="Выбрать" />
-                <!--<Button fx:id="sendButton" minWidth="-Infinity" onAction="#sendFiles" prefWidth="80.0" text="Отправить" />-->
+        <HBox fx:id="bottomField" cache="true" visible="false" managed="false" BorderPane.alignment="BOTTOM_CENTER">
+            <TextField fx:id="textField" onAction="#getFilesList" promptText="введите сообщение" HBox.hgrow="ALWAYS">
+            </TextField>
+            <Button fx:id="buttonSelect" minWidth="-Infinity" onAction="#getFilesList" prefWidth="80.0" text="Выбрать"/>
+            <!--<Button fx:id="sendButton" minWidth="-Infinity" onAction="#sendFiles" prefWidth="80.0" text="Отправить" />-->
         </HBox>
     </bottom>
 </BorderPane>

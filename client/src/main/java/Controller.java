@@ -1,40 +1,58 @@
-import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
+import java.net.URL;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.ResourceBundle;
 
-public class Controller {
-    @FXML
-    private HBox bottomField;
-    @FXML
-    private TextField textField;
-    @FXML
-    private Button buttonSelect;
+public class Controller implements Initializable {
+    public VBox informationFields;
+    public ListView fileViewsList;
+    public Button buttonRegistration;
+    public Button buttonLogin;
+    public HBox authorizationField;
+    public TextField login;
+    public PasswordField password;
+    public TextArea textArea;
+    public HBox bottomField;
+    public TextField textField;
+    public Button buttonSelect;
+
     private Core core;
-    @FXML
-    private TextArea textArea;
-    @FXML
-    private TextField login;
-    @FXML
-    private PasswordField password;
-    public Button sendLoginPassword;
-    @FXML
-    private HBox authorizationField;
     private boolean isAuthorization;
-    StartClient app;
+    private StartClient app;
+    private ObservableList<Path> fileObservableList;
 
     public void setApp(StartClient app) {
         this.app = app;
     }
 
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        setAuthorization(false);
+        fileObservableList = FXCollections.observableArrayList();
+        fileViewsList.setItems(fileObservableList);
+    }
+
     public void setCore(Core core) {
         this.core = core;
+    }
+
+    public void setFileViewsList(List<Path> list) {
+        Platform.runLater(() -> {
+            fileObservableList.clear();
+            fileObservableList.addAll(list);
+        });
     }
 
     public void getFilesList() {
@@ -52,7 +70,7 @@ public class Controller {
 //    }
 
     public void printMessage(String text) {
-        Platform.runLater(() -> textArea.appendText(text + "\n"));
+//        Platform.runLater(() -> textArea.appendText(text + "\n"));
 //        if (text != null)
 
     }
@@ -89,4 +107,6 @@ public class Controller {
 // The Java 8 way to get the response value (with lambda expression).
 //        result.ifPresent(name -> System.out.println("Your name: " + name));*/
     }
+
+
 }

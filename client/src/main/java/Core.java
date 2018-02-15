@@ -204,6 +204,7 @@ public class Core {
         if (isAuthorization) {
             controller.printMessage("login ok");
             this.getProperties();
+            controller.setFileViewsList(syncPaths);
             controller.printMessage("Выбраны папки для синхронизации: ");
         } else {
             controller.printMessage("Соединение потеряно");

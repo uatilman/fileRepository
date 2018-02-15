@@ -37,17 +37,19 @@ public class SQLHandler {
         return hash;
     }
 
-    public static String getSalt(String login) throws SQLException {
+    public static String getSalt(String login) throws SQLException, ClassNotFoundException {
+        connect();
         PreparedStatement ps = connection.prepareStatement("SELECT salt  FROM users WHERE login = ?");
 
         ps.setString(1, login);
         ResultSet rs = ps.executeQuery();
         String salt = rs.getString(1);
         ps.close();
+        disconnect();
         return salt;
     }
 
-    public static boolean  checkPassword(String login, String password) throws SQLException {
+    public static boolean  checkPassword(String login, String password) throws SQLException, ClassNotFoundException {
         return Passwords.isExpectedPassword(
                 password.toCharArray(),
                 DatatypeConverter.parseHexBinary(SQLHandler.getHash(login)),

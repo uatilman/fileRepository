@@ -65,6 +65,7 @@ public class ClientHandler implements Runnable {
 
             }
         } catch (IOException | ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
             isAuthorise = false;
             String s;
             if (e instanceof EOFException) {

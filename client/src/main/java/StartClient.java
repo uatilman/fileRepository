@@ -21,7 +21,7 @@ public class StartClient extends Application {
 
         Controller controller = loader.getController();
         controller.setApp(this);
-        Core core = new Core(controller);
+        new Core(controller);
 
         primaryStage.setTitle("File repository");
         primaryStage.setScene(new Scene(root, 500, 300));
@@ -36,28 +36,19 @@ public class StartClient extends Application {
 
     public void showPersonEditDialog() {
         try {
-            // Загружаем fxml-файл и создаём новую сцену
-            // для всплывающего диалогового окна.
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/dialog.fxml"));
-            DialogController controller = loader.getController();
-
-
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/dialog.fxml"));
             AnchorPane page = loader.load();
-            Stage dialogStage = new Stage();
+            Stage newUserDialog = new Stage();
 
-            dialogStage.setTitle("Registration");
-            dialogStage.initModality(Modality.WINDOW_MODAL);
-            dialogStage.initOwner(primaryStage);
-            Scene scene = new Scene(page, 400, 200);
-            dialogStage.setScene(scene);
+            UserRegistrationController controller = loader.getController();
+            controller.setUserRegistrationStage(newUserDialog);
 
-            // Передаём адресата в контроллер.
-//            controller.setDialogStage(dialogStage);
+            newUserDialog.setTitle("Registration");
+            newUserDialog.initModality(Modality.WINDOW_MODAL); //блокирвока родительсвого окна ниже
+            newUserDialog.initOwner(primaryStage); // окно родителя
+            newUserDialog.setScene(new Scene(page, 400, 200));
 
-
-            // Отображаем диалоговое окно и ждём, пока пользователь его не закроет
-            dialogStage.showAndWait();
+            newUserDialog.showAndWait(); //метод временно блокирует обработку текущего события и запускает вложенный цикл событий для обработки других событий.
 
         } catch (IOException e) {
             e.printStackTrace();
