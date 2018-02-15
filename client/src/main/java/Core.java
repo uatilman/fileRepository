@@ -22,6 +22,7 @@ public class Core {
     private Controller controller;
     private List<Path> syncPaths;
     private Socket socket = null;
+    private String login;
 
 
     Core(Controller controller) {
@@ -49,7 +50,7 @@ public class Core {
                 } catch (IOException e) {
                     printException(e);
                 }
-                controller.printMessage("Авторизируйтесь");
+                controller.printMessage1("Авторизируйтесь");
 
                 try {
 
@@ -58,7 +59,7 @@ public class Core {
                         if (message.getMessageType() == MessageType.AUTHORIZATION_SUCCESSFUL) {
                             setAuthorization(true);
                         } else {
-                            controller.printMessage("Логин или Пароль неверные. Повторите попытку.");
+                            controller.printMessage1("Логин или Пароль неверные. Повторите попытку.");
                         }
                     }
                     while (isAuthorization) {
@@ -160,11 +161,11 @@ public class Core {
         for (MyFile myCurrentDst : myFilesDst) {
             if (myCurrentDst.isDirectory()) { // если на сервере есть дирректория, которой нет у клиента рекурсивно синхронизируем все вложения
                 Path newPath = syncPaths.get(0).resolve(myCurrentDst.getFile().toPath());
-                controller.printMessage(". " + newPath);
+                controller.printMessage1(". " + newPath);
 
                 deleteIfExists(newPath);
                 Files.createDirectory(newPath);
-                controller.printMessage("Create Dir: " + newPath);
+                controller.printMessage1("Create Dir: " + newPath);
                 Files.setLastModifiedTime(newPath, FileTime.fromMillis(myCurrentDst.getLastModifiedTime()));
 
 
@@ -193,7 +194,7 @@ public class Core {
 
     private void deleteIfExists(Path newPath) throws IOException {
         if (Files.exists(newPath)) {
-            controller.printMessage("delete " + newPath);
+            controller.printMessage1("delete " + newPath);
             Files.delete(newPath);
         }
     }
@@ -202,26 +203,31 @@ public class Core {
         this.isAuthorization = isAuthorization;
         controller.setAuthorization(isAuthorization);
         if (isAuthorization) {
-            controller.printMessage("login ok");
+            controller.printMessage1("login ok");
             this.getProperties();
             controller.setFileViewsList(syncPaths);
-            controller.printMessage("Выбраны папки для синхронизации: ");
+            controller.printMessage1("Выбраны папки для синхронизации: ");
         } else {
-            controller.printMessage("Соединение потеряно");
+            controller.printMessage1("Соединение потеряно");
         }
     }
 
     private void sendMessage(Message message, String userText) throws IOException {
         os.writeObject(message);
         os.flush();
-        controller.printMessage(userText);
+        controller.printMessage1(userText);
     }
 
     //TODO https://habrahabr.ru/post/85698/
     public void sendLogin(String login, String password) throws IOException {
         Message message = new Message(MessageType.GET_AUTHORIZATION, login, password);
+        this.login = login;
         os.writeObject(message);
         os.flush();
+    }
+
+    public String getLogin() {
+        return login;
     }
 
     public void closeWindow() {
@@ -231,7 +237,7 @@ public class Core {
             os.close();
             isWindowOpen = false;
         } catch (IOException e) {
-            controller.printMessage(e.getMessage());
+            controller.printMessage1(e.getMessage());
         }
     }
 
@@ -264,22 +270,22 @@ public class Core {
         if (files != null) {
             controller.clearTextArea();
             for (File f : files) {
-                controller.printMessage(f.getName());
+                controller.printMessage1(f.getName());
             }
         }
     }
 
     private void printException(Exception e) {
         if (e instanceof NoSuchFileException) {
-            controller.printMessage("Файл не найден " + e.getMessage());
+            controller.printMessage1("Файл не найден " + e.getMessage());
         } else if (e instanceof ClassNotFoundException) {
-            controller.printMessage("Ошибка при передачи сообщений: " + e.getMessage());
+            controller.printMessage1("Ошибка при передачи сообщений: " + e.getMessage());
         } else if (e instanceof SocketException) {
-            controller.printMessage("Соединение разорвано: " + e.getMessage());
+            controller.printMessage1("Соединение разорвано: " + e.getMessage());
         } else if (e instanceof IOException) {
-            controller.printMessage(e.getMessage());
+            controller.printMessage1(e.getMessage());
         } else {
-            controller.printMessage("Неопознанная ошибка: " + e.getMessage());
+            controller.printMessage1("Неопознанная ошибка: " + e.getMessage());
 
         }
     }

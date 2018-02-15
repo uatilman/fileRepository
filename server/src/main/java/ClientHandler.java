@@ -128,7 +128,6 @@ public class ClientHandler implements Runnable {
             message = (Message) in.readObject();
 
             if (message.getMessageType() == MessageType.GET_AUTHORIZATION) {
-                SQLHandler.connect();
                 if (SQLHandler.checkPassword(message.getLogin(), message.getPassword())) {
                     sendCommandMessage(MessageType.AUTHORIZATION_SUCCESSFUL);
                     setAuthorise(message.getLogin());
@@ -138,7 +137,6 @@ public class ClientHandler implements Runnable {
                 } else {
                     sendCommandMessage(MessageType.AUTHORIZATION_FAIL);
                 }
-                SQLHandler.disconnect();
             } else {
                 sendCommandMessage(MessageType.COMMAND_NOT_RECOGNIZED);
             }

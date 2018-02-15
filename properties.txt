@@ -1,2 +1,3 @@
 [Sync folders]
-C:\Users\usr-mbk00066\Desktop\src
+C:\Users\uatil\Desktop\client
+C:\Users\uatil\Desktop\serverFiles\user1

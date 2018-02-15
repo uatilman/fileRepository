@@ -28,19 +28,22 @@ public class SQLHandler {
         return userList;
     }
 
-    public static String getHash(String login) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement("SELECT password_hash  FROM users WHERE login = ?");
+    public static String getHash(String login) throws SQLException, ClassNotFoundException {
+        connect();
+
+        PreparedStatement ps = connection.prepareStatement("SELECT password_hash  FROM users WHERE login = ?;");
         ps.setString(1, login);
         ResultSet rs = ps.executeQuery();
         String hash = rs.getString(1);
         ps.close();
+        disconnect();
+
         return hash;
     }
 
     public static String getSalt(String login) throws SQLException, ClassNotFoundException {
         connect();
-        PreparedStatement ps = connection.prepareStatement("SELECT salt  FROM users WHERE login = ?");
-
+        PreparedStatement ps = connection.prepareStatement("SELECT salt FROM users WHERE login = ?;");
         ps.setString(1, login);
         ResultSet rs = ps.executeQuery();
         String salt = rs.getString(1);
@@ -53,7 +56,7 @@ public class SQLHandler {
         return Passwords.isExpectedPassword(
                 password.toCharArray(),
                 DatatypeConverter.parseHexBinary(SQLHandler.getHash(login)),
-                DatatypeConverter.parseHexBinary(SQLHandler.getSalt(password))
+                DatatypeConverter.parseHexBinary(SQLHandler.getSalt(login))
         );
     }
 

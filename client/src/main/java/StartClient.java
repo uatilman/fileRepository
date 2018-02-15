@@ -18,13 +18,15 @@ public class StartClient extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/sample.fxml"));
         Parent root = loader.load();
 
-
         Controller controller = loader.getController();
         controller.setApp(this);
         new Core(controller);
 
-        primaryStage.setTitle("File repository");
-        primaryStage.setScene(new Scene(root, 500, 300));
+        primaryStage.setTitle("not logged in");
+        Scene scene = new Scene(root, 600, 300);
+        scene.getStylesheets().add(0, "my.css");
+
+        primaryStage.setScene(scene);
         primaryStage.show();
 
         primaryStage.setOnCloseRequest(event -> controller.closingWindow());

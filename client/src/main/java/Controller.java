@@ -2,13 +2,16 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -17,7 +20,7 @@ import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
     public VBox informationFields;
-    public ListView fileViewsList;
+//    public ListView<Path> fileViewsList;
     public Button buttonRegistration;
     public Button buttonLogin;
     public HBox authorizationField;
@@ -25,8 +28,9 @@ public class Controller implements Initializable {
     public PasswordField password;
     public TextArea textArea;
     public HBox bottomField;
-    public TextField textField;
+//    public TextField textField;
     public Button buttonSelect;
+    public Button applyButton;
 
     private Core core;
     private boolean isAuthorization;
@@ -41,7 +45,7 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         setAuthorization(false);
         fileObservableList = FXCollections.observableArrayList();
-        fileViewsList.setItems(fileObservableList);
+//        fileViewsList.setItems(fileObservableList);
     }
 
     public void setCore(Core core) {
@@ -49,10 +53,31 @@ public class Controller implements Initializable {
     }
 
     public void setFileViewsList(List<Path> list) {
-        Platform.runLater(() -> {
-            fileObservableList.clear();
-            fileObservableList.addAll(list);
-        });
+
+        for (Path path:list) {
+            Platform.runLater(() -> {
+                Label label = new Label(path.toString());
+                label.setTextFill(Color.RED);
+                label.setPadding(new Insets(0, 0, 10, 0));
+                label.setWrapText(true);
+                informationFields.getChildren().add(label);
+
+                // TODO: 15.02.2018
+                label.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent event) {
+                        System.out.println(  label.getText());
+                    }
+                });
+            });
+        }
+
+
+//        Platform.runLater(() -> {
+//            fileObservableList.clear();
+//            fileObservableList.addAll(list);
+//        });
+
     }
 
     public void getFilesList() {
@@ -69,7 +94,9 @@ public class Controller implements Initializable {
 //        core.sendFiles();
 //    }
 
-    public void printMessage(String text) {
+    public void printMessage1(String text) {
+        // TODO: 15.02.2018 переделать в всплывающие окна
+//        System.out.println(text + "\n");
 //        Platform.runLater(() -> textArea.appendText(text + "\n"));
 //        if (text != null)
 
@@ -82,8 +109,14 @@ public class Controller implements Initializable {
     public void setAuthorization(boolean isAuthorization) {
         this.isAuthorization = isAuthorization;
         authorizationField.setVisible(!this.isAuthorization);
+        authorizationField.setManaged(!this.isAuthorization);
         bottomField.setVisible(this.isAuthorization);
+        bottomField.setManaged(this.isAuthorization);
 //        textArea.setVisible(this.isAuthorization);
+//        fileViewsList.setVisible(this.isAuthorization);
+//        fileViewsList.setManaged(this.isAuthorization);
+        if (this.isAuthorization) Platform.runLater(() -> app.getPrimaryStage().setTitle(core.getLogin().toUpperCase()));
+        else Platform.runLater(() -> app.getPrimaryStage().setTitle("not logged in"));
     }
 
     public void closingWindow() {
@@ -109,4 +142,7 @@ public class Controller implements Initializable {
     }
 
 
+
+    public void apply(ActionEvent actionEvent) {
+    }
 }
