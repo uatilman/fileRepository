@@ -254,6 +254,7 @@ public class Core {
             switch (settings.get(i)) {
                 case "[Sync folders]":
                     i++;
+                    // TODO: 15.02.2018 пропускать #
                     while (i < settings.size() &&
                             (settings.get(i).startsWith("\\\\") || settings.get(i).substring(1).startsWith(":\\"))) {
                         syncPaths.add(Paths.get(settings.get(i++)));
