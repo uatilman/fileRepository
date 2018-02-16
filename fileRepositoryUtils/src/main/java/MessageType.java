@@ -5,6 +5,7 @@ public enum MessageType {
     AUTHORIZATION_FAIL,
     COMMAND_NOT_RECOGNIZED,
     FILE_LIST,
+    GET_FILE_LIST,
     FILE,
     DIR,
     GET

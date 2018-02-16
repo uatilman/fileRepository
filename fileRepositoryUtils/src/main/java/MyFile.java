@@ -56,9 +56,13 @@ public class MyFile implements Serializable {
     }
 
     public static List<MyFile> getTree(Path relativePath, Path root) {
+
+
         Path path = root.resolve(relativePath);
         List<MyFile> myFiles = new ArrayList<>();
+        // TODO: 16.02.2018 посмотреть что будет на сервере с корнем м.б. добавить boolean у сервера мы просим или у клиента, но скорей всего все будет ок
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
+        if (relativePath == root) myFiles.add(new MyFile(root,root));
             for (Path p : stream) {
                 MyFile myFile = new MyFile(p, root);
                 if (myFile.isDirectory()) {
