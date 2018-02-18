@@ -8,6 +8,7 @@ import java.util.*;
 public class MyFile implements Serializable {
     private transient Path path;
     private File file;
+    private File absoluteClientRootFile;
     private long lastModifiedTime;
     private List<MyFile> childList;
     private boolean isDirectory;
@@ -21,13 +22,13 @@ public class MyFile implements Serializable {
         this.childList = new ArrayList<>();
     }
 
-    public MyFile(long lastModifiedTime, Path path, List<MyFile> childList) {
-        this.lastModifiedTime = lastModifiedTime;
-        this.path = path;
-        this.file = this.path.toFile();
-        this.childList = childList;
-        this.isDirectory = true;
-    }
+//    public MyFile(long lastModifiedTime, Path path, List<MyFile> childList) {
+//        this.lastModifiedTime = lastModifiedTime;
+//        this.path = path;
+//        this.file = this.path.toFile();
+//        this.childList = childList;
+//        this.isDirectory = true;
+//    }
 
     private MyFile(long lastModifiedTime, File file, List<MyFile> childList) {
         this.lastModifiedTime = lastModifiedTime;
@@ -42,7 +43,6 @@ public class MyFile implements Serializable {
     }
 
 
-
     public List<MyFile> getChildList() {
         return childList;
     }
@@ -55,18 +55,30 @@ public class MyFile implements Serializable {
         this.childList = childList;
     }
 
-    public static List<MyFile> getTree(Path relativePath, Path root) {
+    public static List<MyFile> getTree(Path relativePath, Path root, boolean isServer) {
 
 
         Path path = root.resolve(relativePath);
         List<MyFile> myFiles = new ArrayList<>();
         // TODO: 16.02.2018 посмотреть что будет на сервере с корнем м.б. добавить boolean у сервера мы просим или у клиента, но скорей всего все будет ок
+//
+//        boolean b1 = relativePath.equals(root);
+//        System.out.println(b1);
+//
+/*        if (relativePath.toString().equals(root.toString()) && !isServer) {
+            try {
+                myFiles.add(new MyFile(root, root));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }*/
+
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
-        if (relativePath == root) myFiles.add(new MyFile(root,root));
+
             for (Path p : stream) {
                 MyFile myFile = new MyFile(p, root);
                 if (myFile.isDirectory()) {
-                    myFile.childList.addAll(getTree(p, root));
+                    myFile.childList.addAll(getTree(p, root, false));
                 }
                 myFiles.add(myFile);
             }

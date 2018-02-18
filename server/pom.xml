@@ -22,13 +22,12 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.11</version>
-       </dependency>
-
-        <!--           <dependency>
-                      <groupId>ru.uatilman</groupId>
-                      <artifactId>utils</artifactId>
-                      <version>1.0-SNAPSHOT</version>
-                  </dependency>-->
+        </dependency>
+        <dependency>
+            <groupId>ru.uatilman</groupId>
+            <artifactId>fileRepositoryUtils</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

@@ -20,27 +20,27 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
 
+        try {
+            WatchService watcher = FileSystems.getDefault().newWatchService();
+            Path dir = Paths.get("server\\serverFiles\\user2\\path2\\5");
+            WatchKey key = dir.register(watcher,
+                    StandardWatchEventKinds.ENTRY_CREATE,
+                    StandardWatchEventKinds.ENTRY_DELETE,
+                    StandardWatchEventKinds.ENTRY_MODIFY);
+            while (true) {
 
-        System.out.println();
-        File file = new File("D:\\OneDrive\\programming\\java\\java5\\fileRepository\\serverFiles");
-        paths = getPaths(file);
-
-        Main main = new Main();
-        for (Path p : paths) {
-            main.myFile1s.add(new MyFile1(getAttributes(p), p.toString()));
+                for (WatchEvent<?> event : key.pollEvents()) {
+                    WatchEvent.Kind<?> kind = event.kind();
+                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                    Path file = ev.context();
+                    System.out.println(file + " - " + kind.name());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        main.myFile1s.sort(Comparator.comparing(MyFile1::getFileName));
 
-        for (int i = 0; i < main.myFile1s.size(); i++) {
-            System.out.println(main.myFile1s.get(i));
-        }
-//        Process process = Runtime.getRuntime().exec("cmd /C cls");
-//        Process process = Runtime.getRuntime().exec("cmd /C start cls");
-//        OutputStream out = process.getOutputStream();
-//        ObjectOutputStream oos = new ObjectOutputStream(out);
-//        oos.writeChars("Hello");
-//        Thread.sleep(5000);
-//        oos.close();
+
     }
 
     private static void streamTest() {

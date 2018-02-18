@@ -17,6 +17,8 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class Controller implements Initializable {
     public VBox informationFields;
@@ -53,31 +55,27 @@ public class Controller implements Initializable {
     }
 
     public void setFileViewsList(List<Path> list) {
-
-        for (Path path:list) {
             Platform.runLater(() -> {
-                Label label = new Label(path.toString());
-                label.setTextFill(Color.RED);
-                label.setPadding(new Insets(0, 0, 10, 0));
-                label.setWrapText(true);
-                informationFields.getChildren().add(label);
-
-                // TODO: 15.02.2018
-                label.setOnMouseClicked(new EventHandler<MouseEvent>() {
-                    @Override
-                    public void handle(MouseEvent event) {
-                        System.out.println(  label.getText());
-                    }
-                });
+                List nodeList = list.stream()
+                        .map((Function<Path, Object>) this::getSynchronizeLabel)
+                        .collect(Collectors.toList());
+                informationFields.getChildren().addAll(nodeList);
             });
-        }
+    }
 
+    private Label getSynchronizeLabel(Path path) {
+        Label label = new Label(path.toString());
+        label.setTextFill(Color.RED);
+        label.setPadding(new Insets(0, 0, 10, 0));
+        label.setWrapText(true);
+        label.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                System.out.println(  label.getText());
+            }
+        });
 
-//        Platform.runLater(() -> {
-//            fileObservableList.clear();
-//            fileObservableList.addAll(list);
-//        });
-
+        return label;
     }
 
     public void getFilesList() {
@@ -96,6 +94,7 @@ public class Controller implements Initializable {
 
     public void printMessage1(String text) {
         // TODO: 15.02.2018 переделать в всплывающие окна
+        System.out.println(text);
 //        System.out.println(text + "\n");
 //        Platform.runLater(() -> textArea.appendText(text + "\n"));
 //        if (text != null)

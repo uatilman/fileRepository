@@ -72,10 +72,10 @@ public class Message implements Serializable {
         this.date = date;
     }
 
-    public Message(MessageType messageType, List<MyFile> files) {
-        this.messageType = messageType;
-        this.files = files;
-    }
+//    public Message(MessageType messageType, MyFile myFile, List<MyFile> files) {
+//        this.messageType = messageType;
+//        this.files = files;
+//    }
 
     public Message(MessageType messageType, String login, String password) {
         this.messageType = messageType;

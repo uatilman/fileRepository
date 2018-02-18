@@ -31,20 +31,34 @@ public class ClientHandler implements Runnable {
             this.out = new ObjectOutputStream(socket.getOutputStream());
 
             authorization();
-            sendFileListMessage(out);
+//            sendFileListMessage();
 
             while (isAuthorise) {
                 Message message;
-                message = (Message) this.in.readObject();
+                message = (Message) in.readObject();
                 serverController.printMessage("\t Incoming message " + message.getMessageType());
 
                 switch (message.getMessageType()) {
                     case COMMAND_NOT_RECOGNIZED:
                         //TODO add command id - long connection time - increment - toString & server or client
                         break;
+                    case GET_FILE_LIST:
+                        MyFile myFile = message.getMyFile();
+                        Path newPath = root.resolve(myFile.getFile().toPath());
+                        System.out.println("GET_FILE_LIST request. get me  " + newPath);
+
+                        if (!Files.exists(newPath)) createDir(myFile);
+
+                        myFile.setChildList(MyFile.getTree(
+                                Paths.get(rootUserDir + "\\" + message.getMyFile().getFile()).toAbsolutePath(),
+                                Paths.get(rootUserDir + "\\" + message.getMyFile().getFile()).toAbsolutePath().getParent(), true));
+
+                        out.writeObject(new Message(MessageType.FILE_LIST, myFile));
+                        out.flush();
+                        break;
                     case FILE_LIST:
-                        sendFileListMessage(out);
-                        serverController.printMessage("\t\t Files list send\n");
+//                        sendFileListMessage();
+                        serverController.printMessage("\t\t oooooooooops\n");
                     case FILE:
                         writeFile(message.getMyFile(), message.getDate());
 
@@ -87,6 +101,12 @@ public class ClientHandler implements Runnable {
                 StandardOpenOption.CREATE);
         Files.setLastModifiedTime(newPath, FileTime.fromMillis(newMyFile.getLastModifiedTime()));
         serverController.printMessage("\t\t File save to disc " + newPath + "\n");
+
+
+
+
+
+
     }
 
     private void sendFileMessage(MyFile needMyFile) throws IOException {
@@ -167,11 +187,11 @@ public class ClientHandler implements Runnable {
     }
 
 
-    private void sendFileListMessage(ObjectOutputStream oos) throws IOException {
-        oos.writeObject(
-                new Message(MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir).toAbsolutePath(), Paths.get(rootUserDir).toAbsolutePath()))
-        );
-        oos.flush();
-    }
+//    private void sendFileListMessage() throws IOException {
+//        out.writeObject(
+//                new Message(MessageType.FILE_LIST, MyFile.getTree(Paths.get(rootUserDir).toAbsolutePath(), Paths.get(rootUserDir).toAbsolutePath(), true))
+//        );
+//        out.flush();
+//    }
 }
 

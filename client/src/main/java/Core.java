@@ -11,6 +11,14 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+// TODO: 18.02.2018 id для корневых папок
+// TODO: 18.02.2018 отдельные классы на виды сообщений?
+// TODO: 18.02.2018 при отправке файла, передавать отдельным полем в сообщении название корневой папки
+// TODO: 18.02.2018 сделать синхронизацию для отдельного файла
+// TODO: 18.02.2018 после завершение синхроонизации при входе запускать слушателей на обоих сторонах, при любом изменении запускать синхронизацию по отдельной папке (в начале по всему хранилищу)
+// TODO: 18.02.2018 список файлов показывать в видоизмененном ListView или в таблице
+// TODO: 18.02.2018 drag&drop
+
 public class Core {
     private final static Path SETTINGS_FILE = Paths.get("properties.txt");
     private boolean isWindowOpen;
@@ -58,6 +66,15 @@ public class Core {
                         Message message = (Message) is.readObject();
                         if (message.getMessageType() == MessageType.AUTHORIZATION_SUCCESSFUL) {
                             setAuthorization(true);
+                            for (int i = 0; i < syncPaths.size(); i++) {
+                                Path currentRoot = syncPaths.get(i);
+                                System.out.println("!!!GET_FILE_LIST request. get me  " + new MyFile(currentRoot, currentRoot));
+
+//                                Message messageGetFL = new Message(MessageType.GET_FILE_LIST, new MyFile(c, syncPaths.get(i).getParent()));
+                                Message messageGetFL = new Message(MessageType.GET_FILE_LIST, new MyFile(syncPaths.get(i), syncPaths.get(i).getParent()));
+                                os.writeObject(messageGetFL);
+                                os.flush();
+                            }
                         } else {
                             controller.printMessage1("Логин или Пароль неверные. Повторите попытку.");
                         }
@@ -67,16 +84,28 @@ public class Core {
                         switch (message.getMessageType()) {
                             case FILE_LIST:
                                 try {
+                                    MyFile incomingMyFile = message.getMyFile();
+                                    List<MyFile> incomingMyFileList = incomingMyFile.getChildList();
+                                    Path rootPath = incomingMyFile.getFile().toPath(); //client
+                                    Integer index = getIndex(rootPath);
+
+
                                     synchronize(
-                                            MyFile.getTree(syncPaths.get(0), syncPaths.get(0)),
-                                            message.getFiles());
+                                            MyFile.getTree(syncPaths.get(index), syncPaths.get(index).getParent(), false),
+                                            incomingMyFileList, syncPaths.get(index) // !!!!!!!!! если сломается все то тут
+                                    );
+
 
                                 } catch (IOException e) {
                                     printException(e);
                                 }
                                 break;
                             case FILE:
-                                Path newPath = syncPaths.get(0).resolve(message.getMyFile().getFile().toString());
+                                String s = message.getMyFile().getFile().toString();
+                                Path path = message.getMyFile().getFile().toPath();
+                                Path rootPath = Paths.get(s.substring(0, s.indexOf("\\")));
+                                Path newPath = syncPaths.get(getIndex(rootPath)).getParent().resolve(path);
+
                                 if (Files.exists(newPath)) Files.delete(newPath);
                                 Files.write(newPath, message.getDate(), StandardOpenOption.CREATE_NEW);
                                 Files.setLastModifiedTime(newPath, FileTime.fromMillis(message.getMyFile().getLastModifiedTime()));
@@ -92,7 +121,6 @@ public class Core {
                         os.close();
                         socket.close();
                         setAuthorization(false);
-                        //TODO доделать до полного возобновления + при старте поставить слушатель на ожидание включения сервера, если Соединение разорвано: из за закрытия окна, клоуз тут неприменять
                     } catch (IOException e) {
                         printException(e);
                     }
@@ -103,7 +131,23 @@ public class Core {
 
     }
 
-    private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst) throws IOException {
+    private Integer getIndex(Path rootPath) throws Exception {
+        Integer index = null;
+        for (int i = 0; i < syncPaths.size(); i++) {
+            if (syncPaths.get(i).endsWith(rootPath.toString())) {
+                if (index == null) {
+                    index = i;
+                } else {
+                    // TODO: 17.02.2018
+                    throw new Exception("Not a unique folder name. The bug will be fixed in the next version");
+                }
+            }
+        }
+
+        return index;
+    }
+
+    private void synchronize(List<MyFile> myFilesSrc, List<MyFile> myFilesDst, Path root) throws IOException {
         myFilesSrc.sort(Comparator.comparing(MyFile::getFile));
         myFilesDst.sort(Comparator.comparing(MyFile::getFile));
 
@@ -112,13 +156,15 @@ public class Core {
             MyFile currentSrcFile = myFilesSrc.get(i);
             if (currentSrcFile.isDirectory()) { //если дирректория
                 if (myFilesDst.contains(currentSrcFile)) { // если на сервере есть директория с такимже именем
-                    synchronize(currentSrcFile.getChildList(), myFilesDst.get(myFilesDst.indexOf(currentSrcFile)).getChildList());
+                    synchronize(currentSrcFile.getChildList(), myFilesDst.get(myFilesDst.indexOf(currentSrcFile)).getChildList(), root);
                     removeList.add(currentSrcFile);
                 } else { //если директории с таким именем нет
                     //отправить информацию о необходимости создать дирректорию
+//                    MyFile myFile = new MyFile(currentSrcFile.getPath(), currentSrcFile.getPath().getParent());
                     sendMessage(new Message(MessageType.DIR, currentSrcFile), "...Send dir " + currentSrcFile);
                     //синхронизируем директорию
-                    synchronize(currentSrcFile.getChildList(), new ArrayList<>());
+                    synchronize(currentSrcFile.getChildList(), new ArrayList<>(), root);
+                    removeList.add(currentSrcFile);
                 }
 
             } else { //если файл
@@ -129,7 +175,7 @@ public class Core {
 
                     if (currentSrcFile.getLastModifiedTime() > currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения больше
 
-                        sendFileMessage(currentSrcFile);
+                        sendFileMessage(currentSrcFile, root);
                         removeList.add(currentSrcFile);
 
                     } else if (currentSrcFile.getLastModifiedTime() < currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения меньше
@@ -144,7 +190,7 @@ public class Core {
                         removeList.add(currentSrcFile);
                     }
                 } else { // если на сервере файла нет
-                    sendFileMessage(currentSrcFile);
+                    sendFileMessage(currentSrcFile, root);
                     removeList.add(currentSrcFile);
 
                     // TODO в текущей версии подразумевается, что в с сервера нельза удалить файл кроме как через единственный клиент,
@@ -160,7 +206,7 @@ public class Core {
         //Запрашиваем с сервера недостающие файлы /создаем папки
         for (MyFile myCurrentDst : myFilesDst) {
             if (myCurrentDst.isDirectory()) { // если на сервере есть дирректория, которой нет у клиента рекурсивно синхронизируем все вложения
-                Path newPath = syncPaths.get(0).resolve(myCurrentDst.getFile().toPath());
+                Path newPath = root.resolve(myCurrentDst.getFile().toPath());
                 controller.printMessage1(". " + newPath);
 
                 deleteIfExists(newPath);
@@ -173,7 +219,7 @@ public class Core {
                 mf.setChildList(new ArrayList<>());
                 myFilesSrc.add(mf);
                 synchronize(myFilesSrc.get(myFilesSrc.indexOf(myCurrentDst)).getChildList(),
-                        myCurrentDst.getChildList()
+                        myCurrentDst.getChildList(), root
                 );
             } else { // запрашиваем файл с сервера, если его не у клиента
                 sendMessage(
@@ -184,8 +230,8 @@ public class Core {
         }
     }
 
-    private void sendFileMessage(MyFile currentSrcFile) throws IOException {
-        Path path = syncPaths.get(0).resolve(currentSrcFile.getPath());
+    private void sendFileMessage(MyFile currentSrcFile, Path root) throws IOException {
+        Path path = root.getParent().resolve(currentSrcFile.getPath());
         sendMessage(
                 new Message(MessageType.FILE, Files.readAllBytes(path), currentSrcFile),
                 "...Send file " + currentSrcFile
@@ -277,6 +323,7 @@ public class Core {
     }
 
     private void printException(Exception e) {
+        e.printStackTrace();
         if (e instanceof NoSuchFileException) {
             controller.printMessage1("Файл не найден " + e.getMessage());
         } else if (e instanceof ClassNotFoundException) {

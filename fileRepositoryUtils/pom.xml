@@ -11,25 +11,4 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>fileRepositoryUtils</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-
-    <build>
-        <plugins>
-            <plugin>
-                <!--При сборке в jar с использованием package мавен не добавляет манифест, для добавления используем следующий плагин-->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <!--С учетом пакетов если они есть-->
-                            <mainClass>Start</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>

@@ -1,3 +1,4 @@
 [Sync folders]
-C:\Users\uatil\Desktop\client
-C:\Users\uatil\Desktop\serverFiles\user1
+C:\Users\uatil\Desktop\path1
+C:\Users\uatil\Desktop\path2
+C:\Users\uatil\Desktop\path3
