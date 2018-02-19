@@ -1,7 +1,7 @@
 [Sync folders]
-C:\Users\uatil\Desktop\path1
-C:\Users\uatil\Desktop\path2
-C:\Users\uatil\Desktop\path3
-C:\Users\uatil\Desktop\1.txt
+\client\clientFiles\path1
+\client\clientFiles\path2
+\client\clientFiles\path3
+D:\OneDrive\programming\java\java5\fileRepository\client\clientFiles\1.txt
 #C:\Users\usr-mbk00066\Desktop\src
 #C:\Users\usr-mbk00066\Desktop\src2

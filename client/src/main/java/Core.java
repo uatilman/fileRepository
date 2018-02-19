@@ -335,7 +335,7 @@ public class Core {
                             i++;
                             continue;
                         }
-                        if ((settings.get(i).startsWith("\\\\") || settings.get(i).substring(1).startsWith(":\\"))) {
+                        if ((settings.get(i).startsWith("\\") || settings.get(i).substring(1).startsWith(":\\"))) {
                             syncPaths.add(Paths.get(settings.get(i)));
                             i++;
                         }
