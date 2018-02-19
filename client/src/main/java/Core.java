@@ -91,8 +91,9 @@ public class Core {
                             case FILE:
                                 String s = message.getMyFile().getFile().toString();
                                 Path path = message.getMyFile().getFile().toPath();
-                                Path rootPath = Paths.get(s.substring(0, s.indexOf("\\")));
-                                Path newPath = syncPaths.get(getIndex(rootPath)).getParent().resolve(path);
+//                                Path rootPath = Paths.get(s.substring(0, s.indexOf("\\")));
+//                                Path newPath = syncPaths.get(getIndex(rootPath)).getParent().resolve(path);
+                                Path newPath = getAbsolutePath(message.getMyFile());
 
                                 if (Files.exists(newPath)) Files.delete(newPath);
                                 Files.write(newPath, message.getDate(), StandardOpenOption.CREATE_NEW);
@@ -226,18 +227,19 @@ public class Core {
     }
 
     private Path getAbsolutePath(MyFile currentSrcFile) {
-        String reletivPath = currentSrcFile.getPath().toString();
-        int index = reletivPath.indexOf("\\");
+        Path currentPath = currentSrcFile.getFile().toPath();
+        String relativePath = currentPath.toString();
+        int index = relativePath.indexOf("\\");
         String root;
         if (index >= 0) {
-            root = reletivPath.substring(0, index);
+            root = relativePath.substring(0, index);
         }else {
-            root = reletivPath;
+            root = relativePath;
         }
 
         for (Path path : syncPaths) {
             if (path.toString().endsWith(root)) {
-                return path.getParent().resolve(currentSrcFile.getPath());
+                return path.getParent().resolve(currentPath);
             }
         }
 
