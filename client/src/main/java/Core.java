@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-// TODO: 18.02.2018 id для корневых папок
+
 // TODO: 18.02.2018 отдельные классы на виды сообщений?
 // TODO: 18.02.2018 при отправке файла, передавать отдельным полем в сообщении название корневой папки
 // TODO: 18.02.2018 сделать синхронизацию для отдельного файла
@@ -91,7 +91,7 @@ public class Core {
 
 
                                     synchronize(
-                                            MyFile.getTree(syncPaths.get(index), syncPaths.get(index).getParent(), false),
+                                            MyFile.getTree(syncPaths.get(index), syncPaths.get(index).getParent()),
                                             incomingMyFileList, syncPaths.get(index) // !!!!!!!!! если сломается все то тут
                                     );
 
@@ -161,7 +161,8 @@ public class Core {
                 } else { //если директории с таким именем нет
                     //отправить информацию о необходимости создать дирректорию
 //                    MyFile myFile = new MyFile(currentSrcFile.getPath(), currentSrcFile.getPath().getParent());
-                    sendMessage(new Message(MessageType.DIR, currentSrcFile), "...Send dir " + currentSrcFile);
+                    new Message(MessageType.DIR, currentSrcFile).sendMessage(os);
+
                     //синхронизируем директорию
                     synchronize(currentSrcFile.getChildList(), new ArrayList<>(), root);
                     removeList.add(currentSrcFile);
@@ -180,10 +181,9 @@ public class Core {
 
                     } else if (currentSrcFile.getLastModifiedTime() < currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения меньше
                         //просим файл с сервера
-                        sendMessage(
-                                new Message(MessageType.GET, currentSrcFile),
-                                "...Get from server file: " + currentSrcFile
-                        );
+
+                        new Message(MessageType.GET, currentSrcFile).sendMessage(os);
+
                         removeList.add(currentSrcFile);
 
                     } else { // файлы идентичны
@@ -222,20 +222,14 @@ public class Core {
                         myCurrentDst.getChildList(), root
                 );
             } else { // запрашиваем файл с сервера, если его не у клиента
-                sendMessage(
-                        new Message(MessageType.GET, myCurrentDst),
-                        "...Get from server file: " + myCurrentDst
-                );
+                new Message(MessageType.GET, myCurrentDst).sendMessage(os);
             }
         }
     }
 
     private void sendFileMessage(MyFile currentSrcFile, Path root) throws IOException {
         Path path = root.getParent().resolve(currentSrcFile.getPath());
-        sendMessage(
-                new Message(MessageType.FILE, Files.readAllBytes(path), currentSrcFile),
-                "...Send file " + currentSrcFile
-        );
+        new Message(MessageType.FILE, Files.readAllBytes(path), currentSrcFile).sendMessage(os);
     }
 
     private void deleteIfExists(Path newPath) throws IOException {
@@ -258,11 +252,11 @@ public class Core {
         }
     }
 
-    private void sendMessage(Message message, String userText) throws IOException {
-        os.writeObject(message);
-        os.flush();
-        controller.printMessage1(userText);
-    }
+//    private void sendMessage(Message message, String userText) throws IOException {
+//        os.writeObject(message);
+//        os.flush();
+//        controller.printMessage1(userText);
+//    }
 
     //TODO https://habrahabr.ru/post/85698/
     public void sendLogin(String login, String password) throws IOException {
@@ -296,14 +290,22 @@ public class Core {
         }
 
         syncPaths = new ArrayList<>();
+
+
         for (int i = 0; i < (settings != null ? settings.size() : 0); i++) {
             switch (settings.get(i)) {
                 case "[Sync folders]":
                     i++;
                     // TODO: 15.02.2018 пропускать #
-                    while (i < settings.size() &&
-                            (settings.get(i).startsWith("\\\\") || settings.get(i).substring(1).startsWith(":\\"))) {
-                        syncPaths.add(Paths.get(settings.get(i++)));
+                    while (i < settings.size()) {
+                        if (settings.get(i).startsWith("#")) {
+                            i++;
+                            continue;
+                        }
+                        if ((settings.get(i).startsWith("\\\\") || settings.get(i).substring(1).startsWith(":\\"))) {
+                            syncPaths.add(Paths.get(settings.get(i)));
+                            i++;
+                        }
                     }
                     break;
                 default:

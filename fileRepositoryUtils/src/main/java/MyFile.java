@@ -22,14 +22,6 @@ public class MyFile implements Serializable {
         this.childList = new ArrayList<>();
     }
 
-//    public MyFile(long lastModifiedTime, Path path, List<MyFile> childList) {
-//        this.lastModifiedTime = lastModifiedTime;
-//        this.path = path;
-//        this.file = this.path.toFile();
-//        this.childList = childList;
-//        this.isDirectory = true;
-//    }
-
     private MyFile(long lastModifiedTime, File file, List<MyFile> childList) {
         this.lastModifiedTime = lastModifiedTime;
         this.path = file.toPath();
@@ -55,30 +47,16 @@ public class MyFile implements Serializable {
         this.childList = childList;
     }
 
-    public static List<MyFile> getTree(Path relativePath, Path root, boolean isServer) {
-
-
+    public static List<MyFile> getTree(Path relativePath, Path root) {
         Path path = root.resolve(relativePath);
         List<MyFile> myFiles = new ArrayList<>();
-        // TODO: 16.02.2018 посмотреть что будет на сервере с корнем м.б. добавить boolean у сервера мы просим или у клиента, но скорей всего все будет ок
-//
-//        boolean b1 = relativePath.equals(root);
-//        System.out.println(b1);
-//
-/*        if (relativePath.toString().equals(root.toString()) && !isServer) {
-            try {
-                myFiles.add(new MyFile(root, root));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }*/
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
 
             for (Path p : stream) {
                 MyFile myFile = new MyFile(p, root);
                 if (myFile.isDirectory()) {
-                    myFile.childList.addAll(getTree(p, root, false));
+                    myFile.childList.addAll(getTree(p, root));
                 }
                 myFiles.add(myFile);
             }
@@ -96,36 +74,6 @@ public class MyFile implements Serializable {
             }
         }
     }
-
-    public void setPath(Path path) {
-        this.path = path;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
-    }
-
-//    public static List<MyFile> removeAll(MyFile myFile, Path root) throws Exception {
-//        List<MyFile> myFiles = MyFile.getTree(root.resolve(myFile.getPath()), root);
-//        List<MyFile> removeList = new ArrayList<>();
-//        ListIterator<MyFile> iterator = myFiles.listIterator();
-//
-//        while (iterator.hasNext() && !myFiles.isEmpty()) {
-//            MyFile temp = iterator.next();
-//            try {
-//                Files.delete(temp.getPath());
-//                temp.setPath(root.toAbsolutePath().relativize((temp.getPath().toAbsolutePath())));
-//                removeList.add(temp);//задать относительный путь
-//                iterator.remove();
-//            } catch (DirectoryNotEmptyException e) {
-//                continue;
-//            }
-//            if (!iterator.hasNext()) iterator = myFiles.listIterator();
-//        }
-//        removeList.add(myFile);
-//        Files.delete(root.resolve(myFile.getPath()));
-//        return removeList;
-//    }
 
     public static MyFile copyDir(MyFile src) {
         List<MyFile> childList = new ArrayList<>(src.childList);

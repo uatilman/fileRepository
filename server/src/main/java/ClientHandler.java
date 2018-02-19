@@ -51,7 +51,7 @@ public class ClientHandler implements Runnable {
 
                         myFile.setChildList(MyFile.getTree(
                                 Paths.get(rootUserDir + "\\" + message.getMyFile().getFile()).toAbsolutePath(),
-                                Paths.get(rootUserDir + "\\" + message.getMyFile().getFile()).toAbsolutePath().getParent(), true));
+                                Paths.get(rootUserDir + "\\" + message.getMyFile().getFile()).toAbsolutePath().getParent()));
 
                         out.writeObject(new Message(MessageType.FILE_LIST, myFile));
                         out.flush();
@@ -102,25 +102,13 @@ public class ClientHandler implements Runnable {
         Files.setLastModifiedTime(newPath, FileTime.fromMillis(newMyFile.getLastModifiedTime()));
         serverController.printMessage("\t\t File save to disc " + newPath + "\n");
 
-
-
-
-
-
     }
 
     private void sendFileMessage(MyFile needMyFile) throws IOException {
         serverController.printMessage(". " + needMyFile.getFile().toPath() + "\n");
         Path needPath = root.resolve(needMyFile.getFile().toPath());
         needMyFile.setLastModifiedTime(Files.getLastModifiedTime(needPath, LinkOption.NOFOLLOW_LINKS).toMillis());
-
-        Message newMessage = new Message(
-                MessageType.FILE,
-                Files.readAllBytes(needPath),
-                needMyFile
-        );
-        out.writeObject(newMessage);
-        out.flush();
+        new Message(MessageType.FILE, Files.readAllBytes(needPath), needMyFile).sendMessage(out);
         serverController.printMessage("\t\t Файлы отправдены клиенту \n");
     }
 
@@ -149,16 +137,19 @@ public class ClientHandler implements Runnable {
 
             if (message.getMessageType() == MessageType.GET_AUTHORIZATION) {
                 if (SQLHandler.checkPassword(message.getLogin(), message.getPassword())) {
-                    sendCommandMessage(MessageType.AUTHORIZATION_SUCCESSFUL);
+                    new Message(MessageType.AUTHORIZATION_SUCCESSFUL).sendMessage(out);
+//                    sendCommandMessage(MessageType.AUTHORIZATION_SUCCESSFUL);
                     setAuthorise(message.getLogin());
                     if (!isAuthorise) {
                         //TODO Отпправить сообщение о проблемах на сервере
                     }
                 } else {
-                    sendCommandMessage(MessageType.AUTHORIZATION_FAIL);
+                    new Message(MessageType.AUTHORIZATION_FAIL).sendMessage(out);
+//                    sendCommandMessage(MessageType.AUTHORIZATION_FAIL);
                 }
             } else {
-                sendCommandMessage(MessageType.COMMAND_NOT_RECOGNIZED);
+                new Message(MessageType.COMMAND_NOT_RECOGNIZED).sendMessage(out);
+//                sendCommandMessage(MessageType.COMMAND_NOT_RECOGNIZED);
             }
         }
     }
@@ -179,11 +170,6 @@ public class ClientHandler implements Runnable {
                 this.isAuthorise = false;
             }
         }
-    }
-
-    private void sendCommandMessage(MessageType messageType) throws IOException {
-        out.writeObject(new Message(messageType));
-        out.flush();
     }
 
 
