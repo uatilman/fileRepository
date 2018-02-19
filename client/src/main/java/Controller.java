@@ -5,6 +5,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
@@ -15,6 +16,7 @@ import javafx.stage.FileChooser;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Function;
@@ -22,7 +24,7 @@ import java.util.stream.Collectors;
 
 public class Controller implements Initializable {
     public VBox informationFields;
-//    public ListView<Path> fileViewsList;
+    //    public ListView<Path> fileViewsList;
     public Button buttonRegistration;
     public Button buttonLogin;
     public HBox authorizationField;
@@ -30,7 +32,7 @@ public class Controller implements Initializable {
     public PasswordField password;
     public TextArea textArea;
     public HBox bottomField;
-//    public TextField textField;
+    //    public TextField textField;
     public Button buttonSelect;
     public Button applyButton;
 
@@ -38,6 +40,7 @@ public class Controller implements Initializable {
     private boolean isAuthorization;
     private StartClient app;
     private ObservableList<Path> fileObservableList;
+    List nodeList;
 
     public void setApp(StartClient app) {
         this.app = app;
@@ -55,12 +58,15 @@ public class Controller implements Initializable {
     }
 
     public void setFileViewsList(List<Path> list) {
-            Platform.runLater(() -> {
-                List nodeList = list.stream()
-                        .map((Function<Path, Object>) this::getSynchronizeLabel)
-                        .collect(Collectors.toList());
-                informationFields.getChildren().addAll(nodeList);
-            });
+        Platform.runLater(() -> {
+            nodeList = list.stream().map(this::getSynchronizeLabel).collect(Collectors.toList());
+            informationFields.getChildren().addAll(nodeList);
+        });
+    }
+
+    public void printMessage1(String text) {
+        System.out.println(text);
+        Platform.runLater(() -> informationFields.getChildren().add(getSynchronizeLabel(text)));
     }
 
     private Label getSynchronizeLabel(Path path) {
@@ -68,13 +74,16 @@ public class Controller implements Initializable {
         label.setTextFill(Color.RED);
         label.setPadding(new Insets(0, 0, 10, 0));
         label.setWrapText(true);
-        label.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                System.out.println(  label.getText());
-            }
-        });
+        label.setOnMouseClicked(event -> System.out.println(label.getText()));
 
+        return label;
+    }
+
+    private Label getSynchronizeLabel(String text) {
+        Label label = new Label(text);
+        label.setTextFill(Color.RED);
+        label.setPadding(new Insets(0, 0, 10, 0));
+        label.setWrapText(true);
         return label;
     }
 
@@ -92,13 +101,12 @@ public class Controller implements Initializable {
 //        core.sendFiles();
 //    }
 
-    public void printMessage1(String text) {
-        // TODO: 15.02.2018 переделать в всплывающие окна
-        System.out.println(text);
-//        System.out.println(text + "\n");
-//        Platform.runLater(() -> textArea.appendText(text + "\n"));
-//        if (text != null)
 
+    public void clear() {
+//        informationFields.getChildren().clear();
+//        observableList.removeAll();
+
+        Platform.runLater(() -> informationFields.getChildren().clear());
     }
 
     public void sendLoginPassword(ActionEvent actionEvent) throws IOException {
@@ -114,7 +122,8 @@ public class Controller implements Initializable {
 //        textArea.setVisible(this.isAuthorization);
 //        fileViewsList.setVisible(this.isAuthorization);
 //        fileViewsList.setManaged(this.isAuthorization);
-        if (this.isAuthorization) Platform.runLater(() -> app.getPrimaryStage().setTitle(core.getLogin().toUpperCase()));
+        if (this.isAuthorization)
+            Platform.runLater(() -> app.getPrimaryStage().setTitle(core.getLogin().toUpperCase()));
         else Platform.runLater(() -> app.getPrimaryStage().setTitle("not logged in"));
     }
 
@@ -141,8 +150,9 @@ public class Controller implements Initializable {
     }
 
 
-
     public void apply(ActionEvent actionEvent) {
 
     }
+
+
 }

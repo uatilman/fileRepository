@@ -39,25 +39,25 @@ public class Core {
         this.controller.setCore(this);
         this.isWindowOpen = true;
 
-        try {
-            socket = new Socket("localhost", 8189);
-            os = new ObjectOutputStream(socket.getOutputStream());
-            is = new ObjectInputStream(socket.getInputStream());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        new Thread(() -> {
+        Thread clientThread = new Thread(() -> {
             while (isWindowOpen) {
                 try {
-                    if (socket.isClosed()) {
+                    if (socket == null || socket.isClosed()) {
                         socket = new Socket("localhost", 8189);
                         os = new ObjectOutputStream(socket.getOutputStream());
                         is = new ObjectInputStream(socket.getInputStream());
                     }
                 } catch (IOException e) {
-                    printException(e);
+//                    printException(e);
+                    controller.printMessage1("Сервер временно недоступен или проблемы с доступом в интернет. Проверьте досуп или повторите попытку позже");
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e1) {
+                        e1.printStackTrace();
+                    }
+                    continue;
                 }
+
                 controller.printMessage1("Авторизируйтесь");
 
                 try {
@@ -89,13 +89,10 @@ public class Core {
                                     Path rootPath = incomingMyFile.getFile().toPath(); //client
                                     Integer index = getIndex(rootPath);
 
-
                                     synchronize(
                                             MyFile.getTree(syncPaths.get(index), syncPaths.get(index).getParent()),
                                             incomingMyFileList, syncPaths.get(index) // !!!!!!!!! если сломается все то тут
                                     );
-
-
                                 } catch (IOException e) {
                                     printException(e);
                                 }
@@ -114,7 +111,7 @@ public class Core {
                         }
                     }
                 } catch (Exception e) {
-                    printException(e);
+                        printException(e);
                 } finally {
                     try {
                         is.close();
@@ -122,11 +119,13 @@ public class Core {
                         socket.close();
                         setAuthorization(false);
                     } catch (IOException e) {
-                        printException(e);
+//                        printException(e);
                     }
                 }
             }
-        }).start();
+        });
+        clientThread.setDaemon(true);
+        clientThread.start();
 
 
     }
@@ -242,11 +241,15 @@ public class Core {
     private void setAuthorization(boolean isAuthorization) {
         this.isAuthorization = isAuthorization;
         controller.setAuthorization(isAuthorization);
+        controller.clear();
+
         if (isAuthorization) {
+
             controller.printMessage1("login ok");
             this.getProperties();
             controller.setFileViewsList(syncPaths);
             controller.printMessage1("Выбраны папки для синхронизации: ");
+
         } else {
             controller.printMessage1("Соединение потеряно");
         }
@@ -262,8 +265,16 @@ public class Core {
     public void sendLogin(String login, String password) throws IOException {
         Message message = new Message(MessageType.GET_AUTHORIZATION, login, password);
         this.login = login;
-        os.writeObject(message);
-        os.flush();
+        if (os != null && !socket.isClosed()) {
+
+            os.writeObject(message);
+            os.flush();
+        } else {
+            controller.clear();
+            controller.printMessage1("Сервер временно недоступен или проблемы с доступом в интернет. Проверьте досуп или повторите попытку позже");
+        }
+
+
     }
 
     public String getLogin() {
@@ -272,9 +283,15 @@ public class Core {
 
     public void closeWindow() {
         try {
-            socket.close();
-            is.close();
-            os.close();
+            setAuthorization(false);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (is != null) is.close();
+            if (os != null) os.close();
+            if (socket != null) socket.close();
             isWindowOpen = false;
         } catch (IOException e) {
             controller.printMessage1(e.getMessage());
@@ -336,7 +353,6 @@ public class Core {
             controller.printMessage1(e.getMessage());
         } else {
             controller.printMessage1("Неопознанная ошибка: " + e.getMessage());
-
         }
     }
 
