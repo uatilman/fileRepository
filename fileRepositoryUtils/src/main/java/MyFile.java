@@ -50,29 +50,26 @@ public class MyFile implements Serializable {
     public static List<MyFile> getTree(Path relativePath, Path root) {
         Path path = root.resolve(relativePath);
         List<MyFile> myFiles = new ArrayList<>();
-
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
-
-            for (Path p : stream) {
-                MyFile myFile = new MyFile(p, root);
-                if (myFile.isDirectory()) {
-                    myFile.childList.addAll(getTree(p, root));
+        if (!Files.isDirectory(path)) {
+            try {
+                myFiles.add(new MyFile(path, root));
+                return myFiles;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
+                for (Path p : stream) {
+                    MyFile myFile = new MyFile(p, root);
+                    if (myFile.isDirectory()) {
+                        myFile.childList.addAll(getTree(p, root));
+                    }
+                    myFiles.add(myFile);
                 }
-                myFiles.add(myFile);
+            } catch (IOException x) {
+                x.printStackTrace();
             }
-        } catch (IOException x) {
-            x.printStackTrace();
-        }
         return myFiles;
-    }
-
-    public static void print(List<MyFile> test) {
-        for (MyFile m : test) {
-            System.out.println(m);
-            if (m.isDirectory()) {
-                print(m.getChildList());
-            }
-        }
     }
 
     public static MyFile copyDir(MyFile src) {
@@ -115,7 +112,6 @@ public class MyFile implements Serializable {
 
     @Override
     public int hashCode() {
-
         return Objects.hash(file, isDirectory);
     }
 }

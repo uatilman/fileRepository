@@ -3,6 +3,7 @@ import java.net.Socket;
 import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
+import java.util.List;
 
 
 public class ClientHandler implements Runnable {
@@ -43,17 +44,17 @@ public class ClientHandler implements Runnable {
                         //TODO add command id - long connection time - increment - toString & server or client
                         break;
                     case GET_FILE_LIST:
-                        MyFile myFile = message.getMyFile();
-                        Path newPath = root.resolve(myFile.getFile().toPath());
-                        System.out.println("GET_FILE_LIST request. get me  " + newPath);
+                        MyFile myFile = new MyFile(Paths.get(rootUserDir), Paths.get(rootUserDir));
+//                        Path newPath = root.resolve(myFile.getFile().toPath());
+//                        System.out.println("GET_FILE_LIST request. get me  " + newPath);
+//
+//                        if (!Files.exists(newPath)) createDir(myFile);
 
-                        if (!Files.exists(newPath)) createDir(myFile);
-
-                        myFile.setChildList(MyFile.getTree(
-                                Paths.get(rootUserDir + "\\" + message.getMyFile().getFile()).toAbsolutePath(),
-                                Paths.get(rootUserDir + "\\" + message.getMyFile().getFile()).toAbsolutePath().getParent()));
-
-                        out.writeObject(new Message(MessageType.FILE_LIST, myFile));
+                        List<MyFile> mflist = MyFile.getTree(
+                                Paths.get(rootUserDir).toAbsolutePath(),
+                                Paths.get(rootUserDir).toAbsolutePath());
+                        myFile.setChildList(mflist);
+                        out.writeObject(new Message(MessageType.FILE_LIST, mflist));
                         out.flush();
                         break;
                     case FILE_LIST:

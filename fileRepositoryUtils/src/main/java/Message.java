@@ -15,9 +15,20 @@ public class Message implements Serializable {
 
     private byte[] date;
     private MyFile myFile;
+    List<MyFile> myFileList;
 
     public Message(MessageType messageType, MyFile myFile) {
         this.myFile = myFile;
+        this.messageType = messageType;
+    }
+
+    public List<MyFile> getMyFileList() {
+        return myFileList;
+    }
+
+    public Message(MessageType messageType, List<MyFile> myFileList) {
+        this.myFileList = myFileList;
+
         this.messageType = messageType;
     }
 
