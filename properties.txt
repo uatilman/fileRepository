@@ -1,7 +1,7 @@
 [Sync folders]
-\client\clientFiles\path1
-\client\clientFiles\path2
-\client\clientFiles\path3
-D:\OneDrive\programming\java\java5\fileRepository\client\clientFiles\1.txt
+client\clientFiles\path1
+client\clientFiles\path2
+client\clientFiles\path3
+client\clientFiles\1.txt
 #C:\Users\usr-mbk00066\Desktop\src
 #C:\Users\usr-mbk00066\Desktop\src2

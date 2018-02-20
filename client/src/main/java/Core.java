@@ -10,6 +10,9 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.*;
+
+import static java.util.logging.Level.*;
 
 
 // TODO: 18.02.2018 отдельные классы на виды сообщений?
@@ -32,12 +35,17 @@ public class Core {
     private Socket socket = null;
     private String login;
 
+    private static final Logger logger = Logger.getLogger(Core.class.getName());
+    private Handler fileHandlerException;
+    private Handler fileHandlerInfo;
 
     Core(Controller controller) {
         this.controller = controller;
         this.isAuthorization = false;
         this.controller.setCore(this);
         this.isWindowOpen = true;
+
+        initLogger();
 
         Thread clientThread = new Thread(() -> {
             while (isWindowOpen) {
@@ -49,7 +57,9 @@ public class Core {
                     }
                 } catch (IOException e) {
 //                    printException(e);
-                    controller.printMessage1("Сервер временно недоступен или проблемы с доступом в интернет. Проверьте досуп или повторите попытку позже");
+                    controller.printErrMessage("Сервер временно недоступен или проблемы с доступом в интернет. Проверьте досуп или повторите попытку позже");
+                    logger.log(SEVERE, "Окно закрыто", e);
+
                     try {
                         Thread.sleep(5000);
                     } catch (InterruptedException e1) {
@@ -58,7 +68,7 @@ public class Core {
                     continue;
                 }
 
-                controller.printMessage1("Авторизируйтесь");
+                controller.printMessage("Авторизируйтесь");
 
                 try {
 
@@ -68,7 +78,7 @@ public class Core {
                             setAuthorization(true);
                             new Message(MessageType.GET_FILE_LIST).sendMessage(os);
                         } else {
-                            controller.printMessage1("Логин или Пароль неверные. Повторите попытку.");
+                            controller.printErrMessage("Логин или Пароль неверные. Повторите попытку.");
                         }
                     }
                     while (isAuthorization) {
@@ -85,6 +95,7 @@ public class Core {
                                     }
                                     synchronize(clientList, message.getMyFileList());
                                 } catch (IOException e) {
+                                    logger.log(SEVERE, "", e);
                                     printException(e);
                                 }
                                 break;
@@ -120,6 +131,34 @@ public class Core {
         clientThread.start();
 
 
+    }
+
+
+    private void initLogger() {
+        logger.setLevel(ALL);
+        logger.setUseParentHandlers(false);
+        try {
+
+            fileHandlerException = new FileHandler("exception.log");
+            fileHandlerException.setFormatter(new SimpleFormatter());
+            fileHandlerException.setLevel(WARNING);
+            logger.addHandler(fileHandlerException);
+
+
+            fileHandlerInfo = new FileHandler("info.log");
+            fileHandlerInfo.setFormatter(new SimpleFormatter());
+            fileHandlerInfo.setLevel(CONFIG);
+            fileHandlerInfo.setFilter(record -> record.getLevel().equals(INFO));
+            logger.addHandler(fileHandlerInfo);
+
+
+            Handler consoleHandler = new ConsoleHandler();
+            consoleHandler.setLevel(SEVERE);
+            logger.addHandler(consoleHandler);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Integer getIndex(Path rootPath) throws Exception {
@@ -200,11 +239,12 @@ public class Core {
 
 //                Path newPath = root.resolve(myCurrentDst.getFile().toPath());
                 Path newPath = getAbsolutePath(myCurrentDst);
-                controller.printMessage1(". " + newPath);
+                controller.printMessage(". " + newPath);
 
-                deleteIfExists(newPath);
+                if (newPath != null) deleteIfExists(newPath);
+// TODO: 20.02.2018 на сервере в корне корне есть дирректория в корне, которой нет у клиента. Сответственно неможем задать корень на клиенте
                 Files.createDirectory(newPath);
-                controller.printMessage1("Create Dir: " + newPath);
+                controller.printMessage("Create Dir: " + newPath);
                 Files.setLastModifiedTime(newPath, FileTime.fromMillis(myCurrentDst.getLastModifiedTime()));
 
 
@@ -233,7 +273,7 @@ public class Core {
         String root;
         if (index >= 0) {
             root = relativePath.substring(0, index);
-        }else {
+        } else {
             root = relativePath;
         }
 
@@ -249,7 +289,7 @@ public class Core {
 
     private void deleteIfExists(Path newPath) throws IOException {
         if (Files.exists(newPath)) {
-            controller.printMessage1("delete " + newPath);
+            controller.printMessage("delete " + newPath);
             Files.delete(newPath);
         }
     }
@@ -261,13 +301,13 @@ public class Core {
 
         if (isAuthorization) {
 
-            controller.printMessage1("login ok");
+            controller.printMessage("login ok");
             this.getProperties();
             controller.setFileViewsList(syncPaths);
-            controller.printMessage1("Выбраны папки для синхронизации: ");
+            controller.printMessage("Выбраны папки для синхронизации: ");
 
         } else {
-            controller.printMessage1("Соединение потеряно");
+            controller.printMessage("Соединение потеряно");
         }
     }
 
@@ -287,7 +327,7 @@ public class Core {
             os.flush();
         } else {
             controller.clear();
-            controller.printMessage1("Сервер временно недоступен или проблемы с доступом в интернет. Проверьте досуп или повторите попытку позже");
+            controller.printErrMessage("Сервер временно недоступен или проблемы с доступом в интернет. Проверьте досуп или повторите попытку позже");
         }
 
 
@@ -310,7 +350,8 @@ public class Core {
             if (socket != null) socket.close();
             isWindowOpen = false;
         } catch (IOException e) {
-            controller.printMessage1(e.getMessage());
+            controller.printErrMessage(e.getMessage());
+            logger.log(INFO, "Окно закрыто");
         }
     }
 
@@ -335,8 +376,12 @@ public class Core {
                             i++;
                             continue;
                         }
-                        if ((settings.get(i).startsWith("\\") || settings.get(i).substring(1).startsWith(":\\"))) {
-                            syncPaths.add(Paths.get(settings.get(i)));
+                        if (settings.get(i).startsWith("[")) {
+                            i--;
+                            break;
+                        } else {
+                            Path p = Paths.get(settings.get(i)).toAbsolutePath();
+                            syncPaths.add(p);
                             i++;
                         }
                     }
@@ -352,7 +397,7 @@ public class Core {
         if (files != null) {
             controller.clearTextArea();
             for (File f : files) {
-                controller.printMessage1(f.getName());
+                controller.printMessage(f.getName());
             }
         }
     }
@@ -360,15 +405,15 @@ public class Core {
     private void printException(Exception e) {
         e.printStackTrace();
         if (e instanceof NoSuchFileException) {
-            controller.printMessage1("Файл не найден " + e.getMessage());
+            controller.printErrMessage("Файл не найден " + e.getMessage());
         } else if (e instanceof ClassNotFoundException) {
-            controller.printMessage1("Ошибка при передачи сообщений: " + e.getMessage());
+            controller.printErrMessage("Ошибка при передачи сообщений: " + e.getMessage());
         } else if (e instanceof SocketException) {
-            controller.printMessage1("Соединение разорвано: " + e.getMessage());
+            controller.printErrMessage("Соединение разорвано: " + e.getMessage());
         } else if (e instanceof IOException) {
-            controller.printMessage1(e.getMessage());
+            controller.printErrMessage(e.getMessage());
         } else {
-            controller.printMessage1("Неопознанная ошибка: " + e.getMessage());
+            controller.printErrMessage("Неопознанная ошибка: " + e.getMessage());
         }
     }
 

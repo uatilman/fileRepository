@@ -2,12 +2,10 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -16,11 +14,13 @@ import javafx.stage.FileChooser;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static javafx.scene.paint.Color.GREEN;
+import static javafx.scene.paint.Color.RED;
 
 public class Controller implements Initializable {
     public VBox informationFields;
@@ -40,7 +40,8 @@ public class Controller implements Initializable {
     private boolean isAuthorization;
     private StartClient app;
     private ObservableList<Path> fileObservableList;
-    List nodeList;
+    private List<Node> nodeList;
+
 
     public void setApp(StartClient app) {
         this.app = app;
@@ -59,19 +60,25 @@ public class Controller implements Initializable {
 
     public void setFileViewsList(List<Path> list) {
         Platform.runLater(() -> {
-            nodeList = list.stream().map(this::getSynchronizeLabel).collect(Collectors.toList());
+            nodeList = list.stream().map(path -> getSynchronizeLabel(path, GREEN)).collect(Collectors.toList());
             informationFields.getChildren().addAll(nodeList);
         });
     }
 
-    public void printMessage1(String text) {
+    public void printMessage(String text) {
         System.out.println(text);
-        Platform.runLater(() -> informationFields.getChildren().add(getSynchronizeLabel(text)));
+        Platform.runLater(() -> informationFields.getChildren().add(getSynchronizeLabel(text, GREEN)));
     }
 
-    private Label getSynchronizeLabel(Path path) {
+    public void printErrMessage(String text) {
+        System.out.println(text);
+        Platform.runLater(() -> informationFields.getChildren().add(getSynchronizeLabel(text, RED)));
+    }
+
+
+    private Node getSynchronizeLabel(Path path, Color color) {
         Label label = new Label(path.toString());
-        label.setTextFill(Color.RED);
+        label.setTextFill(RED);
         label.setPadding(new Insets(0, 0, 10, 0));
         label.setWrapText(true);
         label.setOnMouseClicked(event -> System.out.println(label.getText()));
@@ -79,9 +86,9 @@ public class Controller implements Initializable {
         return label;
     }
 
-    private Label getSynchronizeLabel(String text) {
+    private Label getSynchronizeLabel(String text, Color color) {
         Label label = new Label(text);
-        label.setTextFill(Color.RED);
+        label.setTextFill(color);
         label.setPadding(new Insets(0, 0, 10, 0));
         label.setWrapText(true);
         return label;
