@@ -76,7 +76,7 @@ public class SQLHandler {
     }
 
     public static void connect() throws ClassNotFoundException, SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:server/fileRepository.db");
+        connection = DriverManager.getConnection("jdbc:sqlite:../server/fileRepository.db");
     }
 
     public static void disconnect() throws ClassNotFoundException, SQLException {

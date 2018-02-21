@@ -1,7 +1,7 @@
 [Sync folders]
-client\clientFiles\path1
-client\clientFiles\path2
-client\clientFiles\path3
-client\clientFiles\1.txt
+..\clientFiles\path1
+..\clientFiles\path2
+..\clientFiles\path3
+..\clientFiles\1.txt
 #C:\Users\usr-mbk00066\Desktop\src
 #C:\Users\usr-mbk00066\Desktop\src2

@@ -23,7 +23,7 @@ import static java.util.logging.Level.*;
 // TODO: 18.02.2018 drag&drop
 
 public class Core {
-    private final static Path SETTINGS_FILE = Paths.get("properties.txt");
+    private final static Path SETTINGS_FILE = Paths.get("../properties.txt");
     private boolean isWindowOpen;
     private boolean isAuthorization;
     private List<File> files; // вероятно пригодится для выбора папок для синхронизации

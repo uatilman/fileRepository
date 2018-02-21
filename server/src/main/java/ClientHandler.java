@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 public class ClientHandler implements Runnable {
     private Socket socket;
     private String userName;
-    private final Path SERVER_ADDRESS = Paths.get("server/serverFiles");
+    private final Path SERVER_ADDRESS = Paths.get("../serverFiles");
     private String rootUserDir;
     private Path root;
     private ServerController serverController;
@@ -76,12 +76,8 @@ public class ClientHandler implements Runnable {
 
                         break;
                     case DELETE_FILE:
-                        MyFile deleteMyFile = message.getMyFile();
-                        Path newPath = root.resolve(deleteMyFile.getFile().toPath());
-
-                        deletePath(newPath.toFile());
-
-
+                        Path deletePath = root.resolve(message.getMyFile().getFile().toPath());
+                        deletePath(deletePath.toFile());
                         break;
                     default:
                         out.writeObject(new Message(MessageType.COMMAND_NOT_RECOGNIZED));
