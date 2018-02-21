@@ -7,6 +7,7 @@ public enum MessageType {
     FILE_LIST,
     GET_FILE_LIST,
     FILE,
+    DELETE_FILE,
     DIR,
     GET
 }

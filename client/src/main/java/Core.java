@@ -232,16 +232,22 @@ public class Core {
 
         myFilesSrc.removeAll(removeList);
         myFilesDst.removeAll(removeList);
-
+        removeList.clear();
         //Запрашиваем с сервера недостающие файлы /создаем папки
         for (MyFile myCurrentDst : myFilesDst) {
             if (myCurrentDst.isDirectory()) { // если на сервере есть дирректория, которой нет у клиента рекурсивно синхронизируем все вложения
 
 //                Path newPath = root.resolve(myCurrentDst.getFile().toPath());
                 Path newPath = getAbsolutePath(myCurrentDst);
+                if (newPath == null) {
+// TODO: 21.02.2018 аналог  removeList.add(currentSrcFile);
+                    new Message(MessageType.DELETE_FILE, myCurrentDst).sendMessage(os);
+                    removeList.add(myCurrentDst);
+                    continue;
+                }
                 controller.printMessage(". " + newPath);
 
-                if (newPath != null) deleteIfExists(newPath);
+                deleteIfExists(newPath);
 // TODO: 20.02.2018 на сервере в корне корне есть дирректория в корне, которой нет у клиента. Сответственно неможем задать корень на клиенте
                 Files.createDirectory(newPath);
                 controller.printMessage("Create Dir: " + newPath);
@@ -258,6 +264,7 @@ public class Core {
                 new Message(MessageType.GET, myCurrentDst).sendMessage(os);
             }
         }
+        myFilesDst.removeAll(removeList); //непроверено
     }
 
     private void sendFileMessage(MyFile currentSrcFile) throws IOException {
