@@ -4,19 +4,37 @@ import org.junit.*;
 public class SyncTest {
 
     @Before
-    public void start() {
-        new Thread(() -> ServerStart.main(null)).start();
-        new Thread(() -> StartClient.main(null)).start();
+    public void init() {
+
     }
 
     @Test
-    public void testTest() {
+    public void serverStart() {
+        Thread serverThread = new Thread(() -> ServerStart.main(null));
+        serverThread.setDaemon(true);
+        serverThread.start();
         try {
-            Thread.sleep(100000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertTrue("ddd", true);
+
+        Assert.assertTrue(true);
+    }
+
+    @Test
+    public void clientStart() {
+        Thread clientThread = new Thread(() -> StartClient.main(null));
+        clientThread.setDaemon(true);
+        clientThread.start();
+
+        try {
+            Thread.sleep(10000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Assert.assertTrue(true);
     }
 
 }
