@@ -89,6 +89,8 @@ public class Core {
 
                                     List<MyFile> clientList = new ArrayList<>();
                                     for (Path syncPath : syncPaths) {
+                                        if (!Files.exists(syncPath))
+                                            continue;
                                         MyFile myFile = new MyFile(syncPath, syncPath.getParent());
                                         myFile.getChildList().addAll(MyFile.getTree(syncPath, syncPath.getParent()));
                                         clientList.add(myFile);
