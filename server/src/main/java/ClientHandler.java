@@ -27,12 +27,10 @@ public class ClientHandler implements Runnable {
     public void run() {
         serverController.printMessage("\tclient connect from host " + socket.getInetAddress() + "\n");
         try {
-
             this.in = new ObjectInputStream(socket.getInputStream());
             this.out = new ObjectOutputStream(socket.getOutputStream());
 
             authorization();
-//            sendFileListMessage();
 
             while (isAuthorise) {
                 Message message;
@@ -45,32 +43,22 @@ public class ClientHandler implements Runnable {
                         break;
                     case GET_FILE_LIST:
                         MyFile myFile = new MyFile(Paths.get(rootUserDir), Paths.get(rootUserDir));
-//                        Path newPath = root.resolve(myFile.getFile().toPath());
-//                        System.out.println("GET_FILE_LIST request. get me  " + newPath);
-//
-//                        if (!Files.exists(newPath)) createDir(myFile);
 
-                        List<MyFile> mflist = MyFile.getTree(
+                        List<MyFile> mfList = MyFile.getTree(
                                 Paths.get(rootUserDir).toAbsolutePath(),
                                 Paths.get(rootUserDir).toAbsolutePath());
-                        myFile.setChildList(mflist);
-                        out.writeObject(new Message(MessageType.FILE_LIST, mflist));
+                        myFile.setChildList(mfList);
+                        out.writeObject(new Message(MessageType.FILE_LIST, mfList));
                         out.flush();
                         break;
-                    case FILE_LIST:
-//                        sendFileListMessage();
-                        serverController.printMessage("\t\t oooooooooops\n");
                     case FILE:
                         writeFile(message.getMyFile(), message.getDate());
-
                         break;
                     case DIR:
                         createDir(message.getMyFile());
-
                         break;
                     case GET:
                         sendFileMessage(message.getMyFile());
-
                         break;
                     case DELETE_FILE:
                         Path deletePath = root.resolve(message.getMyFile().getFile().toPath());
@@ -84,7 +72,6 @@ public class ClientHandler implements Runnable {
 
             }
         } catch (IOException | ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
             isAuthorise = false;
             String s;
             if (e instanceof EOFException) {

@@ -3,7 +3,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServerSQLHandler extends SQLHandler{
+public class ServerSQLHandler extends SQLHandler {
 
     ServerSQLHandler(String url) {
         super(url);
@@ -29,7 +29,15 @@ public class ServerSQLHandler extends SQLHandler{
         PreparedStatement ps = connection.prepareStatement("SELECT password_hash  FROM users WHERE login = ?;");
         ps.setString(1, login);
         ResultSet rs = ps.executeQuery();
-        String hash = rs.getString(1);
+
+        String hash = null;
+        try {
+            hash = rs.getString(1);
+        } catch (SQLException e) {
+
+        }
+
+
         ps.close();
         disconnect();
 
@@ -47,7 +55,7 @@ public class ServerSQLHandler extends SQLHandler{
         return salt;
     }
 
-    public boolean  checkPassword(String login, String password) throws SQLException, ClassNotFoundException {
+    public boolean checkPassword(String login, String password) throws SQLException, ClassNotFoundException {
         connect();
         boolean result = Passwords.isExpectedPassword(
                 password.toCharArray(),

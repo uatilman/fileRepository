@@ -63,7 +63,7 @@ public class ServerController {
     }
 
     public void printErrMessage(String message) {
-        System.err.println(message);
+        System.err.println("\n" + message);
     }
 
 }

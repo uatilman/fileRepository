@@ -4,8 +4,6 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 public class UserRegistrationController {
-
-
     public TextField loginField;
     public PasswordField firstPasswordField;
     public PasswordField secondPasswordField;

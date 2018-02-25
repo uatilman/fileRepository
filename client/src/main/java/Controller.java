@@ -195,7 +195,7 @@ public class Controller implements Initializable {
     }
 
 
-    public void newFileDialog(MyFile myFile) {
+    public void newFileDialog(MyFile myFile)  {
         String fileName = myFile.getFile().toString();
         Platform.runLater(() -> {
             Alert alert = new Alert(CONFIRMATION);
@@ -215,7 +215,9 @@ public class Controller implements Initializable {
                 System.out.println("newFile " + newFile);
                 core.setFiles(Collections.singletonList(newFile), fileName);
             } else if (result.get() == buttonRemove) {
-                core.removeServerPath(myFile);
+
+                    core.removeServerPath(myFile);
+
             }
         });
 

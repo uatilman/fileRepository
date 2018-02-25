@@ -59,31 +59,35 @@ public class Core {
                         sqlHandler = new ClientSqlHandler(DB_URL);
                     }
                 } catch (IOException e) {
-//                    printException(e);
+                    controller.clear();
                     controller.printErrMessage("Сервер временно недоступен или проблемы с доступом в интернет. Проверьте досуп или повторите попытку позже");
-                    LOGGER.log(SEVERE, "Окно закрыто", e);
+                    LOGGER.log(INFO, "Нет связи с сервером " + e.getMessage());
 
                     try {
                         Thread.sleep(5000);
                     } catch (InterruptedException e1) {
-                        e1.printStackTrace();
+                        LOGGER.log(WARNING, "", e);
                     }
                     continue;
                 }
-
+                controller.clear();
                 controller.printMessage("Авторизируйтесь");
+                LOGGER.log(INFO, "Связь с сервером установлена");
 
                 try {
-
                     while (!isAuthorization) {
                         Message message = (Message) is.readObject();
                         if (message.getMessageType() == MessageType.AUTHORIZATION_SUCCESSFUL) {
                             setAuthorization(true);
                             updateFiles();
                         } else {
+                            LOGGER.log(INFO, "Логин или Пароль неверные.");
                             controller.printErrMessage("Логин или Пароль неверные. Повторите попытку.");
                         }
                     }
+
+                    LOGGER.log(INFO, "Успешная авторизация");
+
                     while (isAuthorization) {
                         Message message = (Message) is.readObject();
                         switch (message.getMessageType()) {
@@ -111,7 +115,6 @@ public class Core {
                                     controller.setFileViewsList(syncPaths, GREEN);
 
                                 } catch (IOException e) {
-                                    LOGGER.log(SEVERE, "", e);
                                     printException(e);
                                 }
                                 break;
@@ -142,15 +145,12 @@ public class Core {
                         socket.close();
                         setAuthorization(false);
                     } catch (IOException e) {
-//                        printException(e);
                     }
                 }
             }
         });
         clientThread.setDaemon(true);
         clientThread.start();
-
-
     }
 
 
@@ -300,13 +300,12 @@ public class Core {
         controller.clear();
 
         if (isAuthorization) {
-
             syncPathsUpdate();
-            // TODO: 23.02.2018 if null
             controller.clear();
             controller.setFileViewsList(syncPaths, GREEN);
         } else {
             controller.printMessage("Соединение потеряно");
+            LOGGER.log(INFO, "Соединение потеряно");
         }
     }
 
@@ -328,7 +327,6 @@ public class Core {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
         }
     }
 
@@ -345,8 +343,6 @@ public class Core {
             controller.clear();
             controller.printErrMessage("Сервер временно недоступен или проблемы с доступом в интернет. Проверьте досуп или повторите попытку позже");
         }
-
-
     }
 
     public String getLogin() {
@@ -371,54 +367,49 @@ public class Core {
         }
     }
 
-
-    private void printException(Exception e) {
-        e.printStackTrace();
-        if (e instanceof NoSuchFileException) {
-            controller.printErrMessage("Файл не найден " + e.getMessage());
-        } else if (e instanceof ClassNotFoundException) {
-            controller.printErrMessage("Ошибка при передачи сообщений: " + e.getMessage());
-        } else if (e instanceof SocketException) {
-            controller.printErrMessage("Соединение разорвано: " + e.getMessage());
-        } else if (e instanceof IOException) {
-            controller.printErrMessage(e.getMessage());
-        } else {
-            controller.printErrMessage("Неопознанная ошибка: " + e.getMessage());
-        }
-    }
-
-    public void removeItem(Path path){
+    public void removeItem(Path path) {
         sqlHandler.remove(path.toString());
     }
 
-    public void removeServerPath(MyFile myFile){
+    public void removeServerPath(MyFile myFile) {
         try {
             new Message(MessageType.DELETE_FILE, myFile).sendMessage(os);
         } catch (IOException e) {
-            e.printStackTrace();
+            printException(e);
         }
     }
 
     public void removePathItem(Path path, boolean removeFromDisk) {
         removeItem(path);
-        // TODO: 23.02.2018 удалить с сервера
         syncPaths.remove(path);
-
         syncPathsUpdate();
-
-
         try {
             new Message(MessageType.DELETE_FILE, new MyFile(path, path.getParent())).sendMessage(os);
             if (removeFromDisk)
                 Files.delete(path);
             updateFiles();
-
         } catch (IOException e) {
-            e.printStackTrace();
+            printException(e);
         }
         controller.setFileViewsList(syncPaths, GREEN);
-
     }
 
-
+    private void printException(Exception e) {
+        if (e instanceof NoSuchFileException) {
+            controller.printErrMessage("Файл не найден " + e.getMessage());
+            LOGGER.log(WARNING, "Файл не найден ", e);
+        } else if (e instanceof ClassNotFoundException) {
+            controller.printErrMessage("Ошибка при передачи сообщений: " + e.getMessage());
+            LOGGER.log(WARNING, "Ошибка при передачи сообщений: ", e);
+        } else if (e instanceof SocketException) {
+            controller.printErrMessage("Соединение разорвано: " + e.getMessage());
+            LOGGER.log(INFO, "Соединение разорвано: ", e);
+        } else if (e instanceof IOException) {
+            controller.printErrMessage(e.getMessage());
+            LOGGER.log(WARNING, "", e);
+        } else {
+            controller.printErrMessage("Неопознанная ошибка: " + e.getMessage());
+            LOGGER.log(WARNING, "Неопознанная ошибка: ", e);
+        }
+    }
 }

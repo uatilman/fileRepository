@@ -9,5 +9,6 @@ public enum MessageType {
     FILE,
     DELETE_FILE,
     DIR,
-    GET
+    GET,
+    NEW_USER
 }
