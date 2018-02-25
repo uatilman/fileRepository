@@ -24,10 +24,9 @@ public class ServerController {
             }
             if (command == null) System.out.println("команда нераспознана");
             if (command.equalsIgnoreCase("users")) {
+               ServerSQLHandler handler = new ServerSQLHandler("jdbc:sqlite:server/fileRepository.db");
                 try {
-                    SQLHandler.connect();
-                    SQLHandler.getUsers().forEach(System.out::println);
-                    SQLHandler.disconnect();
+                    handler.getUsers().forEach(System.out::println);
                 } catch (SQLException | ClassNotFoundException e) {
                     e.printStackTrace();
                 }

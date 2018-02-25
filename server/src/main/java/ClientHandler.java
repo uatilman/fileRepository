@@ -3,16 +3,13 @@ import java.net.Socket;
 import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 
 public class ClientHandler implements Runnable {
     private Socket socket;
     private String userName;
-    private final Path SERVER_ADDRESS = Paths.get("../serverFiles");
+    private final Path SERVER_ADDRESS = Paths.get("2_serverFiles");
     private String rootUserDir;
     private Path root;
     private ServerController serverController;
@@ -98,11 +95,12 @@ public class ClientHandler implements Runnable {
             serverController.printErrMessage(s);
         }
     }
-/**
-* методреализован с использованием oi, т.к. nio используют stream,
- * который похоже выполняется в паралельных потоках
- * и удаление папки после файла не срабатывает
- * */
+
+    /**
+     * методреализован с использованием oi, т.к. nio используют stream,
+     * который похоже выполняется в паралельных потоках
+     * и удаление папки после файла не срабатывает
+     */
     private void deletePath(File deletePath) {
 
         if (!deletePath.isDirectory()) {
@@ -166,9 +164,9 @@ public class ClientHandler implements Runnable {
         while (!isAuthorise) {
             Message message;
             message = (Message) in.readObject();
-
+            ServerSQLHandler handler = new ServerSQLHandler("jdbc:sqlite:server/fileRepository.db");
             if (message.getMessageType() == MessageType.GET_AUTHORIZATION) {
-                if (SQLHandler.checkPassword(message.getLogin(), message.getPassword())) {
+                if (handler.checkPassword(message.getLogin(), message.getPassword())) {
                     new Message(MessageType.AUTHORIZATION_SUCCESSFUL).sendMessage(out);
 //                    sendCommandMessage(MessageType.AUTHORIZATION_SUCCESSFUL);
                     setAuthorise(message.getLogin());

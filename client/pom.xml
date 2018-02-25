@@ -31,7 +31,7 @@
                     <archive>
                         <manifest>
                             <!--С учетом пакетов если они есть-->
-                            <mainClass>myTests.Main</mainClass>
+                            <mainClass>StartClient</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

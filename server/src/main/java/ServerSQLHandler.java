@@ -3,20 +3,14 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SQLHandler {
-    private static Connection connection;
+public class ServerSQLHandler extends SQLHandler{
 
-//    public static void main(String[] args) throws SQLException, ClassNotFoundException {
-//        SQLHandler sqlHandler = new SQLHandler();
-//        sqlHandler.connect();
-////        System.out.println(sqlHandler.isPasswordAvalible("user1", "pas1"));
-////        sqlHandler.insertTestDate();
-////        System.out.println(sqlHandler.getPassByLogin("user1"));
-//        sqlHandler.disconnect();
-//
-//    }
+    ServerSQLHandler(String url) {
+        super(url);
+    }
 
-    public static List<String> getUsers() throws SQLException {
+    public List<String> getUsers() throws SQLException, ClassNotFoundException {
+        connect();
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT login FROM users");
         List<String> userList = new ArrayList<>();
@@ -25,10 +19,11 @@ public class SQLHandler {
         }
         rs.close();
         statement.close();
+        disconnect();
         return userList;
     }
 
-    public static String getHash(String login) throws SQLException, ClassNotFoundException {
+    private String getHash(String login) throws SQLException, ClassNotFoundException {
         connect();
 
         PreparedStatement ps = connection.prepareStatement("SELECT password_hash  FROM users WHERE login = ?;");
@@ -41,7 +36,7 @@ public class SQLHandler {
         return hash;
     }
 
-    public static String getSalt(String login) throws SQLException, ClassNotFoundException {
+    private String getSalt(String login) throws SQLException, ClassNotFoundException {
         connect();
         PreparedStatement ps = connection.prepareStatement("SELECT salt FROM users WHERE login = ?;");
         ps.setString(1, login);
@@ -52,12 +47,15 @@ public class SQLHandler {
         return salt;
     }
 
-    public static boolean  checkPassword(String login, String password) throws SQLException, ClassNotFoundException {
-        return Passwords.isExpectedPassword(
+    public boolean  checkPassword(String login, String password) throws SQLException, ClassNotFoundException {
+        connect();
+        boolean result = Passwords.isExpectedPassword(
                 password.toCharArray(),
-                DatatypeConverter.parseHexBinary(SQLHandler.getHash(login)),
-                DatatypeConverter.parseHexBinary(SQLHandler.getSalt(login))
+                DatatypeConverter.parseHexBinary(getHash(login)),
+                DatatypeConverter.parseHexBinary(getSalt(login))
         );
+        disconnect();
+        return result;
     }
 
     public void insertTestDate() throws SQLException {
@@ -73,14 +71,6 @@ public class SQLHandler {
         }
         ps.close();
 
-    }
-
-    public static void connect() throws ClassNotFoundException, SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:../server/fileRepository.db");
-    }
-
-    public static void disconnect() throws ClassNotFoundException, SQLException {
-        connection.close();
     }
 
 

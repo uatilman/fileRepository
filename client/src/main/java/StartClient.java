@@ -23,7 +23,8 @@ public class StartClient extends Application {
         new Core(controller);
 
         primaryStage.setTitle("not logged in");
-        Scene scene = new Scene(root, 600, 300);
+        Scene scene = new Scene(root);
+//        Scene scene = new Scene(root, 500, 300);
         scene.getStylesheets().add(0, "my.css");
 
         primaryStage.setScene(scene);
@@ -55,6 +56,10 @@ public class StartClient extends Application {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void showNewFileDialog() {
+
     }
 
     public static void main(String[] args) {

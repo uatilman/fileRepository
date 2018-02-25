@@ -1,7 +1,14 @@
 [Sync folders]
-..\clientFiles\path1
-..\clientFiles\path2
-..\clientFiles\path3
-..\clientFiles\1.txt
+D:\OneDrive\programming\java\java5\fileRepository\1_clientFiles\path1
+D:\OneDrive\programming\java\java5\fileRepository\1_clientFiles\path2
+D:\OneDrive\programming\java\java5\fileRepository\1_clientFiles\path3
+D:\OneDrive\programming\java\java5\fileRepository\1_clientFiles\1.txt
 #C:\Users\usr-mbk00066\Desktop\src
 #C:\Users\usr-mbk00066\Desktop\src2
+
+
+CREATE TABLE paths (
+    id   INTEGER        PRIMARY KEY AUTOINCREMENT
+                        UNIQUE,
+    path VARCHAR (1024) UNIQUE
+);

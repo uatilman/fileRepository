@@ -4,4 +4,42 @@
     -fx-shadow-highlight-color: f0f0f0;
     -fx-body-color: linear-gradient(from 0em 0em to 0em 2.083333em, white, #D7D7D7, white);
 }
+#exitButton {
+   -fx-background-radius: 12;
+   -fx-padding: 5;
+   -fx-shadow-highlight-color: f0f0f0;
+   -fx-body-color: linear-gradient(to top, red, #f06d06);
+            }
 
+.text-field {
+   -fx-background-radius: 20;
+   -fx-padding: 5;
+}
+
+#bottomField  {
+    -fx-alignment: bottom-center;
+    -fx-spacing: 20;
+}
+
+#authorizationField {
+    -fx-alignment: top-center;
+    -fx-spacing: 10;
+}
+
+#window {
+    -fx-background-color: c0c0c0;
+    -fx-pref-width: 500;
+    -fx-pref-height: 400;
+}
+
+#informationFields {
+    -fx-background-color: c0c0c0;
+    -fx-pref-width: 500;
+    -fx-pref-height: 400;
+}
+
+
+/*
+.label {
+    -fx-background-color: a8a8a8;
+}*/
