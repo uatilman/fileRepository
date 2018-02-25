@@ -1,3 +1,5 @@
+import org.apache.commons.io.FileUtils;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.*;
@@ -61,7 +63,7 @@ public class ClientHandler implements Runnable {
                         break;
                     case DELETE_FILE:
                         Path deletePath = root.resolve(message.getMyFile().getFile().toPath());
-                        deletePath(deletePath.toFile());
+                        deletePath(deletePath);
                         break;
                     default:
                         out.writeObject(new Message(MessageType.COMMAND_NOT_RECOGNIZED));
@@ -82,26 +84,13 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    /**
-     * методреализован с использованием oi, т.к. nio используют stream,
-     * который похоже выполняется в паралельных потоках
-     * и удаление папки после файла не срабатывает
-     */
-    private void deletePath(File deletePath) {
-
-        if (!deletePath.isDirectory()) {
-            deletePath.delete();
-            serverController.printMessage("\t\t Удаляю ...  " + deletePath + "\n");
+     private void deletePath(Path path) throws IOException {
+        if (!Files.isDirectory(path)) {
+            Files.delete(path);
         } else {
-            File[] arrFile = deletePath.listFiles();
-            if (arrFile != null) {
-                for (File file : arrFile) {
-                    deletePath(file);
-                }
-            }
-            serverController.printMessage("\t\t Удаляю ...  " + deletePath + "\n");
-            deletePath.delete();
+            FileUtils.deleteDirectory(path.toFile());
         }
+        serverController.printMessage("\t\t Удаляю ...  " + path + "\n");
     }
 
     private void writeFile(MyFile newMyFile, byte[] data) throws IOException {

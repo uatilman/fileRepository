@@ -13,6 +13,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="fileRepositoryUtils" />
     <orderEntry type="library" name="Maven: org.xerial:sqlite-jdbc:3.21.0.1" level="project" />
+    <orderEntry type="library" name="Maven: commons-io:commons-io:2.6" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven.plugins:maven-jar-plugin:3.0.2" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven:maven-plugin-api:3.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven:maven-model:3.0" level="project" />
@@ -36,7 +37,6 @@
     <orderEntry type="library" name="Maven: org.sonatype.plexus:plexus-cipher:1.4" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven:maven-artifact:3.0" level="project" />
     <orderEntry type="library" name="Maven: org.apache.maven:maven-archiver:3.1.1" level="project" />
-    <orderEntry type="library" name="Maven: commons-io:commons-io:2.5" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.plexus:plexus-archiver:3.4" level="project" />
     <orderEntry type="library" name="Maven: org.codehaus.plexus:plexus-io:2.7.1" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-compress:1.11" level="project" />

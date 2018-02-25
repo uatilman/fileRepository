@@ -1,3 +1,5 @@
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -379,8 +381,11 @@ public class Core {
         syncPathsUpdate();
         try {
             new Message(MessageType.DELETE_FILE, new MyFile(path, path.getParent())).sendMessage(os);
-            if (removeFromDisk)
-                Files.delete(path);
+            if (removeFromDisk) {
+                // TODO: 25.02.2018  сделать для папок
+                if (Files.isDirectory(path)) FileUtils.deleteDirectory(path.toFile());
+                else Files.delete(path);
+            }
             updateFiles();
         } catch (IOException e) {
             printException(e);
