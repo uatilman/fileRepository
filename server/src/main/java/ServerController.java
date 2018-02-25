@@ -24,7 +24,7 @@ public class ServerController {
             }
             if (command == null) System.out.println("команда нераспознана");
             if (command.equalsIgnoreCase("users")) {
-               ServerSQLHandler handler = new ServerSQLHandler("jdbc:sqlite:server/fileRepository.db");
+                ServerSQLHandler handler = new ServerSQLHandler("jdbc:sqlite:server/fileRepository.db");
                 try {
                     handler.getUsers().forEach(System.out::println);
                 } catch (SQLException | ClassNotFoundException e) {
@@ -37,14 +37,6 @@ public class ServerController {
         }
     }
 
-    public void clear() {
-
-    }
-
-    public void setServerCore(ServerStart serverStart) {
-
-    }
-
     public boolean isStatusStart() {
         return isStatusStart;
     }
@@ -55,10 +47,6 @@ public class ServerController {
 
     public void printMessage(String text) {
         System.out.print(text);
-
-    }
-
-    public void close() {
 
     }
 

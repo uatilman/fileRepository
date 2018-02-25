@@ -37,7 +37,6 @@ public class ServerSQLHandler extends SQLHandler {
 
         }
 
-
         ps.close();
         disconnect();
 
@@ -56,29 +55,13 @@ public class ServerSQLHandler extends SQLHandler {
     }
 
     public boolean checkPassword(String login, String password) throws SQLException, ClassNotFoundException {
-        connect();
+
         boolean result = Passwords.isExpectedPassword(
                 password.toCharArray(),
                 DatatypeConverter.parseHexBinary(getHash(login)),
                 DatatypeConverter.parseHexBinary(getSalt(login))
         );
-        disconnect();
         return result;
-    }
-
-    public void insertTestDate() throws SQLException {
-        PreparedStatement ps = connection.prepareStatement("INSERT INTO users (login, password, password_hash, salt) VALUES (?, ?, ?, ?);");
-        String[] strings = null;
-        for (int i = 1; i < 16; i++) {
-            strings = Passwords.getHashAndSalt("pas" + i);
-            ps.setString(1, ("user" + i));
-            ps.setString(2, ("pas" + i));
-            ps.setString(3, strings[0]);
-            ps.setString(4, strings[1]);
-            ps.execute();
-        }
-        ps.close();
-
     }
 
 

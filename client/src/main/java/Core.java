@@ -1,4 +1,3 @@
-
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,10 +14,7 @@ import static java.util.logging.Level.*;
 import static javafx.scene.paint.Color.GREEN;
 import static javafx.scene.paint.Color.RED;
 
-
 // TODO: 18.02.2018 отдельные классы на виды сообщений?
-// TODO: 18.02.2018 при отправке файла, передавать отдельным полем в сообщении название корневой папки
-// TODO: 18.02.2018 сделать синхронизацию для отдельного файла
 // TODO: 18.02.2018 после завершение синхроонизации при входе запускать слушателей на обоих сторонах, при любом изменении запускать синхронизацию по отдельной папке (в начале по всему хранилищу)
 // TODO: 18.02.2018 список файлов показывать в видоизмененном ListView или в таблице
 // TODO: 18.02.2018 drag&drop
@@ -34,8 +30,6 @@ public class Core {
     private Socket socket = null;
     private String login;
 
-    private Handler fileHandlerException;
-    private Handler fileHandlerInfo;
     private ClientSqlHandler sqlHandler;
 
     private static final String DB_URL = "jdbc:sqlite:client/client_properties.db";
@@ -159,13 +153,13 @@ public class Core {
         LOGGER.setUseParentHandlers(false);
         try {
 
-            fileHandlerException = new FileHandler("exception.log");
+            Handler fileHandlerException = new FileHandler("exception.log");
             fileHandlerException.setFormatter(new SimpleFormatter());
             fileHandlerException.setLevel(WARNING);
             LOGGER.addHandler(fileHandlerException);
 
 
-            fileHandlerInfo = new FileHandler("info.log");
+            Handler fileHandlerInfo = new FileHandler("info.log");
             fileHandlerInfo.setFormatter(new SimpleFormatter());
             fileHandlerInfo.setLevel(CONFIG);
             fileHandlerInfo.setFilter(record -> record.getLevel().equals(INFO));

@@ -39,7 +39,6 @@ public class ClientHandler implements Runnable {
 
                 switch (message.getMessageType()) {
                     case COMMAND_NOT_RECOGNIZED:
-                        //TODO add command id - long connection time - increment - toString & server or client
                         break;
                     case GET_FILE_LIST:
                         MyFile myFile = new MyFile(Paths.get(rootUserDir), Paths.get(rootUserDir));
@@ -91,7 +90,6 @@ public class ClientHandler implements Runnable {
     private void deletePath(File deletePath) {
 
         if (!deletePath.isDirectory()) {
-//            if (!Files.isDirectory(deletePath) || !Files.newDirectoryStream(deletePath).iterator().hasNext()) {
             deletePath.delete();
             serverController.printMessage("\t\t Удаляю ...  " + deletePath + "\n");
         } else {
@@ -104,8 +102,6 @@ public class ClientHandler implements Runnable {
             serverController.printMessage("\t\t Удаляю ...  " + deletePath + "\n");
             deletePath.delete();
         }
-
-
     }
 
     private void writeFile(MyFile newMyFile, byte[] data) throws IOException {
@@ -155,7 +151,6 @@ public class ClientHandler implements Runnable {
             if (message.getMessageType() == MessageType.GET_AUTHORIZATION) {
                 if (handler.checkPassword(message.getLogin(), message.getPassword())) {
                     new Message(MessageType.AUTHORIZATION_SUCCESSFUL).sendMessage(out);
-//                    sendCommandMessage(MessageType.AUTHORIZATION_SUCCESSFUL);
                     setAuthorise(message.getLogin());
                     if (!isAuthorise) {
                         //TODO Отпправить сообщение о проблемах на сервере

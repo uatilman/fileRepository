@@ -25,38 +25,6 @@ public class Passwords {
     private Passwords() {
     }
 
-    /**
-     * Returns a random salt to be used to hash a password.
-     *
-     * @return a 16 bytes random salt
-     */
-    private static byte[] getNextSalt() {
-        byte[] salt = new byte[16];
-        RANDOM.nextBytes(salt);
-        return salt;
-    }
-
-    //TODO перенсти в единственный метод где используется
-    public static String[] getHashAndSalt(String data) {
-        byte salt[] = Passwords.getNextSalt();
-        byte hash[] = Passwords.hash(data.toCharArray(), salt);
-        String[] strings = new String[2];
-
-        strings[0] = DatatypeConverter.printHexBinary(hash);
-        strings[1] = DatatypeConverter.printHexBinary(salt);
-        return strings;
-    }
-
-    /**
-     * Replaced by a structure DatatypeConverter.printHexBinary(bytes)
-     */
-    @Deprecated
-    private static String bytesToHex(byte[] bytes) {
-        DatatypeConverter.printHexBinary(bytes);
-        StringBuilder result = new StringBuilder();
-        for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
-        return result.toString();
-    }
 
     /**
      * Returns a salted and hashed password using the provided hash.<br>
@@ -119,4 +87,38 @@ public class Passwords {
         }
         return sb.toString();
     }
+
+    /**
+     * Returns a random salt to be used to hash a password.
+     *
+     * @return a 16 bytes random salt
+     */
+    private static byte[] getNextSalt() {
+        byte[] salt = new byte[16];
+        RANDOM.nextBytes(salt);
+        return salt;
+    }
+
+    //TODO перенсти в единственный метод где используется
+    public static String[] getHashAndSalt(String data) {
+        byte salt[] = Passwords.getNextSalt();
+        byte hash[] = Passwords.hash(data.toCharArray(), salt);
+        String[] strings = new String[2];
+
+        strings[0] = DatatypeConverter.printHexBinary(hash);
+        strings[1] = DatatypeConverter.printHexBinary(salt);
+        return strings;
+    }
+
+    /**
+     * Replaced by a structure DatatypeConverter.printHexBinary(bytes)
+     */
+    @Deprecated
+    private static String bytesToHex(byte[] bytes) {
+        DatatypeConverter.printHexBinary(bytes);
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) result.append(Integer.toString((b & 0xff) + 0x100, 16).substring(1));
+        return result.toString();
+    }
+
 }
