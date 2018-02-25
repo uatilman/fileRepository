@@ -204,10 +204,15 @@ public class Core {
             } else { //если файл
                 if (myFilesDst.contains(currentSrcFile)) { //если имена файлов совпадают
                     MyFile currentDstFile = myFilesDst.get(myFilesDst.indexOf(currentSrcFile));
-                    if (currentSrcFile.getLastModifiedTime() > currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения больше
+
+//                    if (currentSrcFile.getLastModifiedTime() > currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения больше
+                    // not verified
+                    if (currentSrcFile.isNewer(currentDstFile)) {
                         sendFileMessage(currentSrcFile);
                         removeList.add(currentSrcFile);
-                    } else if (currentSrcFile.getLastModifiedTime() < currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения меньше
+//                    } else if (currentSrcFile.getLastModifiedTime() < currentDstFile.getLastModifiedTime()) { // если у клиента дата последнего изменения меньше
+                        // not verified
+                    } else if (currentSrcFile.isOlder(currentDstFile)) {
                         getMessage(currentSrcFile);
                         removeList.add(currentSrcFile);
                     } else { // файлы идентичны
@@ -382,7 +387,6 @@ public class Core {
         try {
             new Message(MessageType.DELETE_FILE, new MyFile(path, path.getParent())).sendMessage(os);
             if (removeFromDisk) {
-                // TODO: 25.02.2018  сделать для папок
                 if (Files.isDirectory(path)) FileUtils.deleteDirectory(path.toFile());
                 else Files.delete(path);
             }

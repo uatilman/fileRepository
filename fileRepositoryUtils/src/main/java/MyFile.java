@@ -34,6 +34,13 @@ public class MyFile implements Serializable {
         return lastModifiedTime;
     }
 
+    public boolean isNewer(MyFile reference) {
+        return lastModifiedTime > reference.getLastModifiedTime();
+    }
+
+    public boolean isOlder(MyFile reference) {
+        return lastModifiedTime < reference.getLastModifiedTime();
+    }
 
     public List<MyFile> getChildList() {
         return childList;
@@ -58,17 +65,17 @@ public class MyFile implements Serializable {
                 e.printStackTrace();
             }
         }
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
-                for (Path p : stream) {
-                    MyFile myFile = new MyFile(p, root);
-                    if (myFile.isDirectory()) {
-                        myFile.childList.addAll(getTree(p, root));
-                    }
-                    myFiles.add(myFile);
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
+            for (Path p : stream) {
+                MyFile myFile = new MyFile(p, root);
+                if (myFile.isDirectory()) {
+                    myFile.childList.addAll(getTree(p, root));
                 }
-            } catch (IOException x) {
-                x.printStackTrace();
+                myFiles.add(myFile);
             }
+        } catch (IOException x) {
+            x.printStackTrace();
+        }
         return myFiles;
     }
 
